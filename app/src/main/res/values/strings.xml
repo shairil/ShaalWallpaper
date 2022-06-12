@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">ShaalWallpaper</string>
+    <string name="search">Search....</string>
+    <string name="todo">TODO</string>
+    <string name="share">Share</string>
+    <string name="add_to_collection">Add To Collection</string>
+    <string name="wallpaper">Wallpaper</string>
+    <string name="set_wallpaper">Set Wallpaper</string>
+    <string name="collection">Collection</string>
+</resources>
