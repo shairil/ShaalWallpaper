@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 import android.widget.ArrayAdapter;
 
+import com.chaquo.python.PyInvocationHandler;
 import com.chaquo.python.PyObject;
 import com.chaquo.python.Python;
 import com.chaquo.python.android.AndroidPlatform;
@@ -16,8 +17,10 @@ import java.util.List;
 public class webScrapping {
 
     private List<String> imgURL, titles, Res;
+    private int count;
     //private String[] titles, Res;
     private List<Integer> ids;
+    private String url;
 //    private int count;
 //    private PyObject obj;
 
@@ -32,10 +35,32 @@ public class webScrapping {
         ids = new ArrayList<>();
     }
 
+    public void getSearchGoogle(String query, int n){
+        Python py = Python.getInstance();
+        //py.getModule("dsf").callAttr()
+        List<PyObject> pyObject = py.getModule("webScrapping").callAttr("searchGoogle", query, n).asList();
+
+        setTitles(pyObject.get(0).toJava(String[].class));
+        setImgURL(pyObject.get(1).toJava(String[].class));
+        setRes(pyObject.get(2).toJava(String[].class));
+        setIDs(pyObject.get(3).toJava(Integer[].class));
+        setURL(pyObject.get(4).toJava(String.class));
+    }
+
+    public void getAfterGoogleWallpaper(int n, String U){
+        Python py = Python.getInstance();
+        List<PyObject> pyObject = py.getModule("webScrapping").callAttr("wrapperGoogle", U, n).asList();
+        setTitles(pyObject.get(0).toJava(String[].class));
+        //setTitles(pyObject.get(0).toJava(List<String>));
+        setImgURL(pyObject.get(1).toJava(String[].class));
+        setRes(pyObject.get(2).toJava(String[].class));
+        setIDs(pyObject.get(3).toJava(Integer[].class));
+    }
+
 
     public void getWallpaper(int n){
         Python py = Python.getInstance();
-        List<PyObject> pyObject = py.getModule("webScrapping").callAttr("anime_wallpaper", n).asList();
+        List<PyObject> pyObject = py.getModule("webScrapping").callAttr("wrapper", n).asList();
         setTitles(pyObject.get(0).toJava(String[].class));
         //setTitles(pyObject.get(0).toJava(List<String>));
         setImgURL(pyObject.get(1).toJava(String[].class));
@@ -100,6 +125,14 @@ public class webScrapping {
 
     public List<String> getRes(){
         return Res;
+    }
+
+    public void setURL(String url){
+        this.url = url;
+    }
+
+    public String getURL(){
+        return url;
     }
 
     public int getCount(){

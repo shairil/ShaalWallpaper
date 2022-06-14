@@ -60,7 +60,20 @@ public class Util {
                         BitmapFactory.Options options = new BitmapFactory.Options();
                         Bitmap image = BitmapFactory.decodeFile(randomFilePath, options);
                         WallpaperManager manager = WallpaperManager.getInstance(context);
-                        manager.setBitmap(image);
+                        WallpaperManager manager1 = WallpaperManager.getInstance(context);
+                        try {
+                            manager.setBitmap(image, null, true, WallpaperManager.FLAG_LOCK);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                        new Thread(() -> {
+                            try {
+                                manager1.setBitmap(image);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }).start();
                     } else {
                         Log.d(TAG, "File size exceeds limit: " + maxFileSizeInKb);
                     }

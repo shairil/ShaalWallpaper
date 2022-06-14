@@ -15,6 +15,7 @@ public class ScreenLockReceiver extends BroadcastReceiver {
         // an Intent broadcast.
         String action = intent.getAction();
         switch (action) {
+            //case Intent.
             case Intent.ACTION_SCREEN_ON:
                 Log.d(TAG, "onReceive called: screen on");
                 new Util().setRandomWallpaper(context);

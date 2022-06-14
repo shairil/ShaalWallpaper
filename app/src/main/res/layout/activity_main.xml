@@ -7,6 +7,8 @@
     android:background="@color/lightBlack"
     tools:context=".MainActivity">
 
+
+
     <androidx.cardview.widget.CardView
         android:id="@+id/searchCardView"
         android:layout_width="match_parent"
@@ -21,8 +23,10 @@
 
         <EditText
             android:id="@+id/search_edt"
+            android:imeOptions="actionSearch"
             android:layout_width="match_parent"
             android:layout_height="30dp"
+            android:textColor="@color/white"
             android:background="@drawable/searchbarlayout"
             android:hint="@string/search"
             android:paddingStart="5dp"
@@ -30,7 +34,10 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            android:inputType="text"
+            android:importantForAutofill="no"
+             />
 
         <ImageView
             android:id="@+id/search_button"
@@ -46,10 +53,20 @@
             app:layout_constraintTop_toTopOf="parent" />
     </androidx.cardview.widget.CardView>
 
+    <FrameLayout
+        android:id="@+id/frameLayout"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@id/SHOW_PROGRESS"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/searchCardView"
+
+        >
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/wallpaperHome"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="match_parent"
         android:layout_marginTop="4dp"
         app:layout_constraintBottom_toTopOf="@id/SHOW_PROGRESS"
         app:layout_constraintEnd_toEndOf="parent"
@@ -59,13 +76,28 @@
     <ProgressBar
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:elevation="3dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:id="@+id/newProgressbar1"
+
+        />
+
+    </FrameLayout>
+
+    <ProgressBar
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:id="@+id/SHOW_PROGRESS"
         app:layout_constraintStart_toStartOf="parent"
         android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/wallpaperHome"
          />
+
 
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/extendedFloatingActionButton"
@@ -73,7 +105,7 @@
         android:layout_margin="1dp"
         android:text="@string/collection"
 
-        app:elevation="2dp"
+        app:elevation="10dp"
         android:backgroundTint="@color/lightBlack"
         android:textColor="@color/white"
 
@@ -95,6 +127,8 @@
         app:layout_constraintTop_toBottomOf="@id/searchCardView"
         android:scaleType="centerCrop"
         android:contentDescription="@string/todo" />-->
+
+
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

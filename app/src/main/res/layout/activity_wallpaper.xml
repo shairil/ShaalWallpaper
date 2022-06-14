@@ -43,6 +43,10 @@
                 android:background="@drawable/roundbuttonlayout"
                 android:text="@string/set_wallpaper"
                 android:textColor="@color/white"
+                android:foreground="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:soundEffectsEnabled="true"
+                android:alpha="0.8"
                 android:textSize="18sp" />
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -51,8 +55,10 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_margin="1dp"
+                android:soundEffectsEnabled="true"
                 app:elevation="2dp"
-                app:fabCustomSize="45dp"
+                app:fabCustomSize="55dp"
+                android:alpha="0.8"
                 android:src="@drawable/ic_baseline_add_24"
                 android:contentDescription="@string/add_to_collection"/>
 

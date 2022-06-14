@@ -4,8 +4,70 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/lightBlack"
+    android:background="@color/UBlack"
     tools:context=".Collection">
+    
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="?attr/actionBarSize"
+        android:theme="?attr/actionBarTheme"
+        app:layout_constraintBottom_toTopOf="@+id/recyclerViewCollection"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:elevation="10dp"
+        android:background="@color/lightBlack"
+        app:layout_constraintTop_toTopOf="parent">
+
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <ImageButton
+                android:id="@+id/backBtn"
+                android:layout_centerHorizontal="true"
+                android:layout_width="wrap_content"
+                android:layout_height="24dp"
+                android:layout_alignParentStart="true"
+                android:background="@drawable/ic_baseline_arrow_back_ios_24"
+
+                />
+
+            <TextView
+                android:id="@+id/appName"
+                android:textSize="18sp"
+                android:layout_width="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:layout_toEndOf="@+id/backBtn"
+                android:text="@string/app_name"
+                android:textColor="@color/white" />
+
+            <Spinner
+                android:id="@+id/timer"
+                android:layout_alignParentEnd="true"
+                android:background="@drawable/roundbuttonlayout"
+                android:layout_marginEnd="10dp"
+                android:elevation="10dp"
+                android:entries="@array/timer"
+                android:popupElevation="30dp"
+                android:spinnerMode="dropdown"
+                android:soundEffectsEnabled="true"
+                android:fadeScrollbars="true"
+                android:pointerIcon="arrow"
+                android:theme="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense.ExposedDropdownMenu"
+
+                android:layout_width="wrap_content"
+                android:layout_height="24dp"/>
+
+
+
+        </RelativeLayout>
+
+    </androidx.appcompat.widget.Toolbar>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewCollection"
@@ -14,6 +76,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

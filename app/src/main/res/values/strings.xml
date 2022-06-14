@@ -7,4 +7,16 @@
     <string name="wallpaper">Wallpaper</string>
     <string name="set_wallpaper">Set Wallpaper</string>
     <string name="collection">Collection</string>
+
+    <string-array name="timer">
+        <item>15 min</item>
+        <item>30 min</item>
+        <item>1 hr</item>
+        <item>6 hr</item>
+        <item>8 hr</item>
+        <item>1 day</item>
+    </string-array>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="sorry_no_results">Sorry, No Results</string>
 </resources>

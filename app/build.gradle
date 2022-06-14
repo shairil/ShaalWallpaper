@@ -25,6 +25,7 @@ android {
                 install "requests"
                 install "lxml"
                 install "pillow"
+                install "google"
             }
             buildPython "C:/Users/Shair/AppData/Local/Programs/Python/Python38/python.exe"
         }
@@ -57,6 +58,7 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.github.bumptech.glide:glide:4.11.0'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.11.0'
     implementation 'androidx.recyclerview:recyclerview:1.2.1'
     implementation 'androidx.appcompat:appcompat:1.4.0'

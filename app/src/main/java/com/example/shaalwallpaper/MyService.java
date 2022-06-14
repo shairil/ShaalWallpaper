@@ -7,6 +7,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
@@ -15,6 +16,7 @@ import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import androidx.work.PeriodicWorkRequest;
 
+import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -23,13 +25,50 @@ public class MyService extends Service {
     private final String TAG = "MyService";
     public static boolean isServiceRunning;
     private final String CHANNEL_ID = "NOTIFICATION_CHANNEL";
-    private final ScreenLockReceiver screenLockReceiver;
+    //private final ScreenLockReceiver screenLockReceiver;
     private Timer timer;
+    private String time = "15 min";
+    private long t = 900;
+    //private final HashMap<String, Long> map = new HashMap<String, Long>();
 
     public MyService() {
         Log.d(TAG, "constructor called");
         isServiceRunning = false;
-        screenLockReceiver = new ScreenLockReceiver();
+        //screenLockReceiver = new ScreenLockReceiver();
+        try {
+            SharedPreferences sharedPreferences = getSharedPreferences("Timer", MODE_PRIVATE);
+            time = sharedPreferences.getString("time", "15 min");
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        switch (time){
+            case "15 min":
+                t = 900;
+                break;
+            case "30 min":
+                t = 1800;
+                break;
+            case "45 min":
+                t = 2700;
+                break;
+            case "1 hr":
+                t = 3600;
+                break;
+            case "6 hr":
+                t = 21600;
+                break;
+            case "8 hr":
+                t = 28800;
+                break;
+            case "1 day":
+                t = 86400;
+                break;
+            default:
+                t = 500;
+                break;
+        }
+
         timer = new Timer();
     }
 
@@ -41,10 +80,10 @@ public class MyService extends Service {
         isServiceRunning = true;
 
         // register receiver to listen for screen on events
-        IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
-        filter.addAction(Intent.ACTION_USER_PRESENT);
-        filter.addAction(Intent.ACTION_SCREEN_OFF);
-        registerReceiver(screenLockReceiver, filter);
+//        IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
+//        filter.addAction(Intent.ACTION_USER_PRESENT);
+//        filter.addAction(Intent.ACTION_SCREEN_OFF);
+//        registerReceiver(screenLockReceiver, filter);
 
         /*// a dummy timer task - can be ignored
         timer.scheduleAtFixedRate(new TimerTask() {
@@ -58,12 +97,12 @@ public class MyService extends Service {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-
-                new Util().setRandomWallpaper(MyService.this);
+                if(i!=0)
+                    new Util().setRandomWallpaper(MyService.this);
                 i++;
                 Log.d(TAG, "run: " + i);
             }
-        }, 0, 500000);
+        }, 0,t*1000);
     }
 
     @Override
@@ -123,7 +162,7 @@ public class MyService extends Service {
         stopForeground(true);
 
         // unregister receiver
-        unregisterReceiver(screenLockReceiver);
+        //unregisterReceiver(screenLockReceiver);
 
         // cancel the timer
         if (timer != null) {
@@ -131,8 +170,8 @@ public class MyService extends Service {
         }
 
         // call MyReceiver which will restart this service via a worker
-        Intent broadcastIntent = new Intent(this, MyReceiver.class);
-        sendBroadcast(broadcastIntent);
+//        Intent broadcastIntent = new Intent(this, MyReceiver.class);
+//        sendBroadcast(broadcastIntent);
 
         super.onDestroy();
     }
