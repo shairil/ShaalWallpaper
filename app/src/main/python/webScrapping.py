@@ -23,14 +23,14 @@ def getId(imgURL):
 
 
 def getHighImgResolution(imgURL):
-    img = imgURL.replace("thumb-", "")
-    try:
-        image_raw = requests.get(img)
-        image = Image.open(BytesIO(image_raw.content))
-        return img
-
-    except UnidentifiedImageError:
-        return imgURL
+    return imgURL.replace("thumb-", "")
+#    try:
+#        image_raw = requests.get(img)
+#        image = Image.open(BytesIO(image_raw.content))
+#        return img
+#
+#    except UnidentifiedImageError:
+#        return imgURL
 
 
 def getCount():
@@ -92,7 +92,7 @@ def getTrueUrl(url):
 
 
 def searchGoogle(query, n):
-    query = query+" mobile alphacoders phone wallpapers abyss"
+    query = query+" mobile alphacoders HD wallpapers abyss"
     global i
     for j in search(query, tld="co.in", num=1, stop=1, pause=2):
         i = j
@@ -108,6 +108,13 @@ def check(url):
         return url
     elif url.find('https://wall.alphacoders.com/tag/') != -1:
         return getTrueUrl(url)
+    elif url.find('https://wall.alphacoders.com/by_sub_category.php?id=') != -1:
+        j = len("https://wall.alphacoders.com/by_sub_category.php?id=")
+        i = url.index('&')
+        print(j, i)
+        URL = "https://mobile.alphacoders.com/by-sub-category/" + url[j:i]
+        return URL
+        #return
     else:
         return url
 

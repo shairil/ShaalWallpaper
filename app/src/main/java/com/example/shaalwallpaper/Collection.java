@@ -6,11 +6,15 @@ import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
 import android.Manifest;
 import android.app.WallpaperManager;
+import android.content.ComponentName;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.IBinder;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -31,6 +35,8 @@ public class Collection extends AppCompatActivity {
 
     String[] timer = {"15 min", "30 min", "45 min", "1 hr", "6 hr", "8 hr", "1 day"};
     ActivityCollectionBinding binding;
+    boolean mBounded;
+    MyService mServer;
     private List<Bitmap> imgURLs;
     private List<String> titles, res, paths;
     private List<Integer> ids;
@@ -68,40 +74,62 @@ public class Collection extends AppCompatActivity {
         binding.recyclerViewCollection.setLayoutManager(new StaggeredGridLayoutManager(2, LinearLayoutManager.VERTICAL));
         binding.recyclerViewCollection.setAdapter(adapter);
 
-        File wallpaperDirectory = new File(getExternalFilesDir(null) + "/" + WALLPAPER_DIRECTORY);
-        new Util();
-        if (wallpaperDirectory.exists()) {
-            try {
-                File[] files = wallpaperDirectory.listFiles();
-                if (files != null && files.length > 0) {
 
-                    for (File randomFile : files) {
-                        //Log.d(TAG, "Size: " + randomFile.length());
-                        //Log.d(TAG, "Name: " + randomFile.getName());
-                        String randomFilePath = randomFile.getAbsolutePath();
-                        BitmapFactory.Options options = new BitmapFactory.Options();
-                        Bitmap image = BitmapFactory.decodeFile(randomFilePath, options);
-                        //String img = image.toString();
-                        imgURLs.add(image);
-                        int i = randomFile.getName().indexOf('(');
-                        titles.add(randomFile.getName().substring(0, i));
-                        ids.add(Integer.valueOf(randomFile.getName().substring(i+1, i+7)));
-                        paths.add(randomFilePath);
-                        adapter.notifyItemInserted(ids.size()-1);
-                        //Log.d(TAG, "onCreate: "  +img);
+        new Thread(){
+            @Override
+            public void run() {
+                //super.run();
+                File wallpaperDirectory = new File(getExternalFilesDir(null) + "/" + WALLPAPER_DIRECTORY);
+                new Util();
+                if (wallpaperDirectory.exists()) {
+                    try {
+                        File[] files = wallpaperDirectory.listFiles();
+                        if (files != null && files.length > 0) {
+
+                            for (File randomFile : files) {
+                                //Log.d(TAG, "Size: " + randomFile.length());
+                                //Log.d(TAG, "Name: " + randomFile.getName());
+                                int temp = imgURLs.size();
+                                String randomFilePath = randomFile.getAbsolutePath();
+                                BitmapFactory.Options options = new BitmapFactory.Options();
+                                Bitmap image = BitmapFactory.decodeFile(randomFilePath, options);
+                                //String img = image.toString();
+                                imgURLs.add(image);
+                                int i = randomFile.getName().indexOf('(');
+                                titles.add(randomFile.getName().substring(0, i));
+                                ids.add(Integer.valueOf(randomFile.getName().substring(i+1, i+7)));
+                                paths.add(randomFilePath);
+                                Collection.this.runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        adapter.notifyDataSetChanged();
+                                    }
+                                });
+
+                                //Log.d(TAG, "onCreate: "  +img);
+                            }
+                        } else {
+                            Collection.this.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(Collection.this, "Directory is empty", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, e.getMessage());
+                        e.printStackTrace();
                     }
-                } else {
-                    Toast.makeText(this, "Directory is empty", Toast.LENGTH_SHORT).show();
-                }
-            } catch (Exception e) {
-                Log.e(TAG, e.getMessage());
-                e.printStackTrace();
-            }
 
-        } else {
-            boolean createDirectoryResult = wallpaperDirectory.mkdirs();
-            Log.d(TAG, "Wallpaper directory creation result: " + createDirectoryResult);
-        }
+                } else {
+                    boolean createDirectoryResult = wallpaperDirectory.mkdirs();
+                    Log.d(TAG, "Wallpaper directory creation result: " + createDirectoryResult);
+                }
+            }
+        }.start();
+
+
 
 
 
@@ -119,9 +147,9 @@ public class Collection extends AppCompatActivity {
             binding.timer.onSaveInstanceState();
         }
 
-        SharedPreferences.Editor myEdit = sharedPreferences.edit();
-        myEdit.putString("time", binding.timer.getSelectedItem().toString());
-        myEdit.apply();
+
+        //TimerConfig.saveTotalInPref(this, binding.timer.getSelectedItem().toString());
+
 
         binding.timer.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -131,8 +159,14 @@ public class Collection extends AppCompatActivity {
                 }catch (Exception e){
                     e.printStackTrace();
                 }
-                myEdit.putString("time", adapterView.getItemAtPosition(i).toString());
-                myEdit.apply();
+                if(mServer != null) {
+                    mServer.setTime(adapterView.getItemAtPosition(i).toString());
+                    Log.d(TAG, "onItemSelected: service Done");
+                }
+                Log.d(TAG, "onItemSelected: "  + adapterView.getItemAtPosition(i).toString());
+                //TimerConfig.saveTotalInPref(Collection.this, adapterView.getItemAtPosition(i).toString());
+//                myEdit.putString("time", adapterView.getItemAtPosition(i).toString());
+//                myEdit.apply();
             }
 
             @Override
@@ -161,10 +195,47 @@ public class Collection extends AppCompatActivity {
         return -1;
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Intent mIntent = new Intent(this, MyService.class);
+        bindService(mIntent, mConnection, BIND_AUTO_CREATE);
+    }
 
+    ServiceConnection mConnection = new ServiceConnection() {
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            //Toast.makeText(mServer, "", Toast.LENGTH_SHORT).show();
 
+            //Toast.makeText(Collection.this, "Service is disconnected",).show();
+            mBounded = false;
+            mServer = null;
+        }
 
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            //Toast.makeText(Collection.this, "Service is connected", 1000).show();
+            mBounded = true;
+            MyService.LocalBinder mLocalBinder = (MyService.LocalBinder)service;
+            mServer = mLocalBinder.getServerInstance();
+        }
+    };
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if(mBounded) {
+            unbindService(mConnection);
+            mBounded = false;
+        }
+    }
 
-
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if(mBounded) {
+            unbindService(mConnection);
+            mBounded = false;
+        }
+    }
 }

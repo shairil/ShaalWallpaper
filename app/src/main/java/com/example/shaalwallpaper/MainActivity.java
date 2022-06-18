@@ -23,6 +23,8 @@ import android.os.PersistableBundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
@@ -51,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
     private final String WALLPAPER_DIRECTORY = "Shaal-Wallpaper", TAG = "MAIN ACTIVITY";
     private Util util = new Util();
     private final String name = "ADD Data";
+    private String time = "15 min";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +69,13 @@ public class MainActivity extends AppCompatActivity {
         getSupportActionBar().hide();
 
         binding.newProgressbar1.setVisibility(View.VISIBLE);
+
+        try {
+            SharedPreferences sharedPreferences = getSharedPreferences("Timer", MODE_PRIVATE);
+            time = sharedPreferences.getString("time", "15 min");
+        }catch (Exception e){
+            e.printStackTrace();
+        }
 
         createDirectory();
        // util.checkPermission(this, Manifest.permission.SET_WALLPAPER, WALLPAPER_PERMISSION_CODE);
@@ -132,6 +142,15 @@ public class MainActivity extends AppCompatActivity {
 
         RecyclerThread thread = new RecyclerThread(adapter);
         thread.start();
+
+        Window window = this.getWindow();
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+
+        window.setNavigationBarColor(this.getResources().getColor(R.color.colorPrimary));
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+
+
 
         startServiceViaWorker();
     }
@@ -217,6 +236,7 @@ public class MainActivity extends AppCompatActivity {
         if (!MyService.isServiceRunning) {
             Log.d("MainActivty", "starting service from doWork");
             Intent intent = new Intent(this, MyService.class);
+            intent.putExtra("time", time);
             ContextCompat.startForegroundService(this, intent);
             //this.context.startService(intent);
         }
@@ -421,3 +441,5 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 }
+
+

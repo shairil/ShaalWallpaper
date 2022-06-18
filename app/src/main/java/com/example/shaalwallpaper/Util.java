@@ -7,7 +7,9 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Environment;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 import androidx.core.app.ActivityCompat;
@@ -18,6 +20,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class Util {
     private static final int STORAGE_PERMISSION_CODE = 101;
@@ -29,7 +32,8 @@ public class Util {
      * @return integer in range [min, max]
      */
     public static int getRandomInt(int min, int max) {
-        return new Random().nextInt((max - min) + 1) + min;
+        return Math.abs(ThreadLocalRandom.current().nextInt()) % max;
+        //return new Random().nextInt((max - min) + 1) + min;
     }
 
     public static boolean hasPermission(Context context, String permission) {
@@ -56,6 +60,10 @@ public class Util {
                     Log.d(TAG, "Wallpaper file size: " + fileSizeInKb);
                     if (fileSizeInKb <= maxFileSizeInKb) {
                         //checkPermission(context, Manifest.permission.SET_WALLPAPER, WALLPAPER_PERMISSION_CODE);
+                        DisplayMetrics displayMetrics = new DisplayMetrics();
+                        displayMetrics = context.getResources().getDisplayMetrics();
+                        int width = displayMetrics.widthPixels;
+                        int height = displayMetrics.heightPixels;
                         String randomFilePath = randomFile.getAbsolutePath();
                         BitmapFactory.Options options = new BitmapFactory.Options();
                         Bitmap image = BitmapFactory.decodeFile(randomFilePath, options);
@@ -63,6 +71,7 @@ public class Util {
                         WallpaperManager manager1 = WallpaperManager.getInstance(context);
                         try {
                             manager.setBitmap(image, null, true, WallpaperManager.FLAG_LOCK);
+                            manager.suggestDesiredDimensions(width, height);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -70,6 +79,7 @@ public class Util {
                         new Thread(() -> {
                             try {
                                 manager1.setBitmap(image);
+                                manager1.suggestDesiredDimensions(width, height);
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
