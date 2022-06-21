@@ -58,7 +58,7 @@ public class Collection extends AppCompatActivity {
         res = new ArrayList<>();
         ids = new ArrayList<>();
         paths = new ArrayList<>();
-        SharedPreferences sharedPreferences = getSharedPreferences("Timer",MODE_PRIVATE);
+        //SharedPreferences sharedPreferences = getSharedPreferences("Timer",MODE_PRIVATE);
         try {
             SharedPreferences sharedPreferences1 = getSharedPreferences("Timer", MODE_PRIVATE);
             initial = sharedPreferences1.getString("time", "");
@@ -70,6 +70,7 @@ public class Collection extends AppCompatActivity {
         // Creating an Editor object to edit(write to the file)
 
         WallapaperAdapter adapter = new WallapaperAdapter(imgURLs, titles, ids,this, paths);
+//        adapter.setHasStableIds(true);
         binding.recyclerViewCollection.setHasFixedSize(true);
         binding.recyclerViewCollection.setLayoutManager(new StaggeredGridLayoutManager(2, LinearLayoutManager.VERTICAL));
         binding.recyclerViewCollection.setAdapter(adapter);
@@ -99,15 +100,18 @@ public class Collection extends AppCompatActivity {
                                 titles.add(randomFile.getName().substring(0, i));
                                 ids.add(Integer.valueOf(randomFile.getName().substring(i+1, i+7)));
                                 paths.add(randomFilePath);
-                                Collection.this.runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        adapter.notifyDataSetChanged();
-                                    }
-                                });
+
+
 
                                 //Log.d(TAG, "onCreate: "  +img);
                             }
+                            Collection.this.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    adapter.notifyDataSetChanged();
+                                }
+                            });
+
                         } else {
                             Collection.this.runOnUiThread(new Runnable() {
                                 @Override
@@ -150,6 +154,7 @@ public class Collection extends AppCompatActivity {
 
         //TimerConfig.saveTotalInPref(this, binding.timer.getSelectedItem().toString());
 
+        //SharedPreferences sharedPreferences = SharedPreferences
 
         binding.timer.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -164,7 +169,7 @@ public class Collection extends AppCompatActivity {
                     Log.d(TAG, "onItemSelected: service Done");
                 }
                 Log.d(TAG, "onItemSelected: "  + adapterView.getItemAtPosition(i).toString());
-                //TimerConfig.saveTotalInPref(Collection.this, adapterView.getItemAtPosition(i).toString());
+                TimerConfig.saveTotalInPref(Collection.this, adapterView.getItemAtPosition(i).toString());
 //                myEdit.putString("time", adapterView.getItemAtPosition(i).toString());
 //                myEdit.apply();
             }

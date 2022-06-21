@@ -98,7 +98,7 @@ public class seacrhFragment extends BottomSheetDialogFragment {
             progressBar.setVisibility(View.GONE);
         }
 
-
+        progressBar.setVisibility(View.GONE);
         binding.newProgress.setVisibility(View.GONE);
         if(imgUrls.size() == 0){
             binding.result.setVisibility(View.VISIBLE);
@@ -121,12 +121,17 @@ public class seacrhFragment extends BottomSheetDialogFragment {
                     //sha++;
                     isScrolling = false;
                     binding.loadMoreProgressBar.setVisibility(View.VISIBLE);
-                    AddDataThread1 thread = new AddDataThread1(adapter);
-                    thread.setName(name+ n);
-                    try {
-                        thread.start();
-                    }catch (Exception e){
-                        Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_LONG).show();
+                    if(count != -1) {
+                        AddDataThread1 thread = new AddDataThread1(adapter);
+                        thread.setName(name + n);
+                        try {
+                            thread.start();
+                        } catch (Exception e) {
+                            Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_LONG).show();
+                        }
+                    }
+                    else{
+                        binding.loadMoreProgressBar.setVisibility(View.GONE);
                     }
 
                     //Toast.makeText(MainActivity.this, "How many will you be called " + sha, Toast.LENGTH_SHORT).show();

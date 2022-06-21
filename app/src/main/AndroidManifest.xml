@@ -22,12 +22,15 @@
         android:theme="@style/Theme.ShaalWallpaper"
         android:fullBackupContent="@xml/backup_descriptor"
         >
-        <activity android:name=".Collection">
-
+        <activity android:name=".Collection"
+            android:hardwareAccelerated="true"
+            >
 
 
         </activity>
-        <activity android:name=".Wallpaper" />
+        <activity android:name=".Wallpaper"
+            android:immersive="true"
+            />
 
         <receiver
             android:name=".MyReceiver"

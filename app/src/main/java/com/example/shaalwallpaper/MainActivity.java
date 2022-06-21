@@ -362,7 +362,16 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void run() {
             n++;
-            web.getWallpaper(n);
+            try {
+                web.getWallpaper(n);
+            }catch (Exception e){
+                MainActivity.this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
 
 
             int temp = imgUrls.size();

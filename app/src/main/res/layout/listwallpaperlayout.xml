@@ -6,12 +6,15 @@
     android:layout_width="match_parent"
     android:layout_height="370dp"
     android:layout_margin="1dp"
+    android:clickable="true"
+    android:background="?attr/selectableItemBackgroundBorderless"
     app:cardCornerRadius="2dp">
     <ImageView
         android:id="@+id/Wallpaperlist"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="centerCrop"
+
         android:src="@drawable/thumb_965469"
         android:focusableInTouchMode="true"
         android:contentDescription="@string/todo" />

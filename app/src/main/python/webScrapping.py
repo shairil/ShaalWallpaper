@@ -92,12 +92,23 @@ def getTrueUrl(url):
 
 
 def searchGoogle(query, n):
-    query = query+" mobile alphacoders HD wallpapers abyss"
+    query = query + " mobile alphacoders phone wallpapers abyss"
     global i
-    for j in search(query, tld="co.in", num=1, stop=1, pause=2):
+    cnt = 1
+    for j in search(query, tld="co.in", num=5, stop=5, pause=2):
+        if cnt == 1:
+            i = j
+
+        cnt += 1
+        if checkURL(j):
+            i = j
+            break
+        elif j.find('https://wall.alphacoders.com/by_sub_category.php?id=') != -1:
+            i = j
+            break
         i = j
 
-    url = check(i)+'?page='
+    url = check(i) + '?page='
     a = list(anime_wallpaper(url, n))
     a.append(url)
     return tuple(a)
@@ -124,3 +135,30 @@ def wrapper(n):
 
 def wrapperGoogle(url, n):
     return anime_wallpaper(url, n)
+
+
+
+
+def getGODWallpaper(n):
+    url = "https://ghantee.com/lord-shiva-wallpapers/?_page=" + str(n)
+    url = "https://ghantee.com/lord-shiva-wallpapers/?_page=" + str(n)
+    init(url, 0)
+    listWallpaper = soup.select("div.post-thumb-img-content img")
+    print(listWallpaper)
+    wallpapers = []
+
+    for i in listWallpaper:
+        i = str(i)
+        print(i)
+        end = i.index("1080w")
+        start = i[0:end].rfind("https://")
+        wallpapers.append(i[start:end].strip())
+        # print(i)
+    # print(listWallpaper)
+    print(wallpapers)
+
+
+def checkURL(url):
+    if url.find("https://mobile.alphacoders.com/by-sub-category/") != -1 or url.find("https://mobile.alphacoders.com/by-tag/") != -1:
+        return True
+    return False

@@ -5,6 +5,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -13,6 +14,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.os.PowerManager;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
@@ -29,11 +31,13 @@ public class MyService extends Service implements SharedPreferences.OnSharedPref
     private final String TAG = "MyService";
     public static boolean isServiceRunning;
     private final String CHANNEL_ID = "NOTIFICATION_CHANNEL";
+    PowerManager pm;
     //private final ScreenLockReceiver screenLockReceiver;
     private Timer timer;
     private String time = "15 min";
     private long t = 900;
     IBinder mBinder = new LocalBinder();
+    private Handler handler;
     //private final HashMap<String, Long> map = new HashMap<String, Long>();
 
     public MyService() {
@@ -49,6 +53,9 @@ public class MyService extends Service implements SharedPreferences.OnSharedPref
 //            e.printStackTrace();
 //        }
 
+
+        //pm = (PowerManager) Context.getSystemService(Context.POWER_SERVICE);
+
         Log.d(TAG, "MyService: " + time);
 
         timer = new Timer();
@@ -60,6 +67,7 @@ public class MyService extends Service implements SharedPreferences.OnSharedPref
         Log.d(TAG, "onCreate called");
         createNotificationChannel();
         isServiceRunning = true;
+        pm = (PowerManager) this.getSystemService(Context.POWER_SERVICE);
 
         // register receiver to listen for screen on events
 //        IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
@@ -87,25 +95,36 @@ public class MyService extends Service implements SharedPreferences.OnSharedPref
 //            }
 //        }, 0,t*10);
 
+        //Log.d(TAG, "onCreate: " + time);
+        //Log.d(TAG, "Outside run: " + t);
+        handler = new Handler();
+//        handler.post(new Runnable() {
+//            @Override
+//            public void run() {
+//                if(i!=0)
+//                    new Util().setRandomWallpaper(MyService.this);
+//                i++;
+//                Log.d(TAG, "run: " + i);
+//                Log.d(TAG, "run: " + t);
+//                handler.postDelayed(this, t*10);
+//            }
+//        });
 
-
-
-        Log.d(TAG, "onCreate: " + time);
-        Log.d(TAG, "Outside run: " + t);
-        Handler handler = new Handler(Looper.getMainLooper());
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                if(i!=0)
-                    new Util().setRandomWallpaper(MyService.this);
-                i++;
-                Log.d(TAG, "run: " + i);
-                Log.d(TAG, "run: " + t);
-                handler.postDelayed(this, t*1000);
-            }
-        });
+        wallpaperChanger.run();
 
     }
+
+    Runnable wallpaperChanger = new Runnable() {
+        @Override
+        public void run() {
+            if(i!=0 && pm.isInteractive())
+                new Util().setRandomWallpaper(MyService.this);
+            i++;
+            Log.d(TAG, "run: " + i);
+            Log.d(TAG, "run: " + t);
+            handler.postDelayed(this, t*1000);
+        }
+    };
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -187,6 +206,10 @@ public class MyService extends Service implements SharedPreferences.OnSharedPref
             timer.cancel();
         }
 
+        if(handler != null){
+            handler.removeCallbacks(wallpaperChanger);
+        }
+
         // call MyReceiver which will restart this service via a worker
 //        Intent broadcastIntent = new Intent(this, MyReceiver.class);
 //        sendBroadcast(broadcastIntent);
@@ -204,7 +227,7 @@ public class MyService extends Service implements SharedPreferences.OnSharedPref
     public void getT(String time){
         switch (time){
             case "15 min":
-                t = 9000;
+                t = 900;
                 break;
             case "30 min":
                 t = 1800;
@@ -244,5 +267,29 @@ public class MyService extends Service implements SharedPreferences.OnSharedPref
     public void setTime(String time){
         this.time = time;
         getT(time);
+        stopForeground(true);
+        Intent notificationIntent = new Intent(this, MainActivity.class);
+        PendingIntent pendingIntent = null;
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S){
+            pendingIntent = PendingIntent.getActivity(this,
+                    0, notificationIntent, PendingIntent.FLAG_MUTABLE);
+        }
+        else{
+            pendingIntent = PendingIntent.getActivity(this,
+                    0, notificationIntent, 0);
+        }
+        Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setContentTitle("Service is Running")
+                .setContentText("Wallpaper will change automatically in every " + time)
+                .setSmallIcon(R.drawable.ic_wallpaper_black_24dp)
+                .setContentIntent(pendingIntent)
+                .setColor(getResources().getColor(R.color.colorPrimary))
+                .build();
+        /*
+         * A started service can use the startForeground API to put the service in a foreground state,
+         * where the system considers it to be something the user is actively aware of and thus not
+         * a candidate for killing when low on memory.
+         */
+        startForeground(1, notification);
     }
 }

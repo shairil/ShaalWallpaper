@@ -15,6 +15,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.work.impl.utils.WorkTimer;
 
@@ -23,6 +24,7 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.example.shaalwallpaper.R;
 import com.example.shaalwallpaper.Wallpaper;
 import com.example.shaalwallpaper.webScrapping;
+import com.squareup.picasso.Picasso;
 
 import org.w3c.dom.Text;
 
@@ -39,6 +41,7 @@ public class WallapaperAdapter extends RecyclerView.Adapter<WallapaperAdapter.Wa
     int n = 2;
     Context context;
     RecyclerView recyclerView;
+    //private CardView cardView;
 
     @NonNull
     @Override
@@ -59,10 +62,16 @@ public class WallapaperAdapter extends RecyclerView.Adapter<WallapaperAdapter.Wa
                     .into(holder.img);
         }
         else{
-            holder.img.setImageBitmap(imgs.get(position));
+            Glide.with(context)
+                    .load(imgs.get(position))
+                    .dontAnimate()
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .into(holder.img);
+            //holder.img.setImageBitmap(imgs.get(position));
         }
 
-        holder.img.setOnClickListener(new View.OnClickListener() {
+
+        holder.cardView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if(imgUrls != null)
@@ -139,10 +148,12 @@ public class WallapaperAdapter extends RecyclerView.Adapter<WallapaperAdapter.Wa
     public static class WallapaperViewHolder extends RecyclerView.ViewHolder {
 
         public ImageView img;
+        public CardView cardView;
 
         public WallapaperViewHolder(@NonNull View itemView) {
             super(itemView);
             img = (ImageView) itemView.findViewById(R.id.Wallpaperlist);
+            cardView = (CardView) itemView.findViewById(R.id.idCVWallpaper);
         }
     }
 
