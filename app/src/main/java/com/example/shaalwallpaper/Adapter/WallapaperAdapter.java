@@ -3,39 +3,30 @@ package com.example.shaalwallpaper.Adapter;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.net.Uri;
-import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.work.impl.utils.WorkTimer;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.example.shaalwallpaper.R;
 import com.example.shaalwallpaper.Wallpaper;
-import com.example.shaalwallpaper.webScrapping;
-import com.squareup.picasso.Picasso;
+import com.example.shaalwallpaper.helper.webScrapping;
 
-import org.w3c.dom.Text;
-
-import java.util.ArrayList;
+import java.io.File;
 import java.util.List;
-import java.util.Timer;
 
 public class WallapaperAdapter extends RecyclerView.Adapter<WallapaperAdapter.WallapaperViewHolder> {
     public List<String> imgUrls = null, titles=null, res=null, paths = null;
     private List<Bitmap> imgs=null;
     private List<Integer> ids=null;
+    private List<File> files = null;
     private int count;
     private webScrapping web;
     int n = 2;
@@ -63,7 +54,7 @@ public class WallapaperAdapter extends RecyclerView.Adapter<WallapaperAdapter.Wa
         }
         else{
             Glide.with(context)
-                    .load(imgs.get(position))
+                    .load(files.get(position))
                     .dontAnimate()
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .into(holder.img);
@@ -76,8 +67,15 @@ public class WallapaperAdapter extends RecyclerView.Adapter<WallapaperAdapter.Wa
             public void onClick(View view) {
                 if(imgUrls != null)
                     callWallpaperScreenFromMain(imgUrls.get(position), titles.get(position), ids.get(position));
-                else
-                    callWallpaperScreenFromCollection(paths.get(position), titles.get(position), ids.get(position));
+                else{
+                    int i = files.get(position).getName().indexOf('(');
+                    int j = files.get(position).getName().indexOf(')');
+                    int id = Integer.parseInt(files.get(position).getName().substring(i+1, j));
+                    String title = files.get(position).getName().substring(0, i);
+                    String path = files.get(position).getAbsolutePath();
+                    callWallpaperScreenFromCollection(path, title, id);
+                }
+
             }
         });
     }
@@ -108,6 +106,9 @@ public class WallapaperAdapter extends RecyclerView.Adapter<WallapaperAdapter.Wa
     @Override
     public int getItemCount() {
         //Log.d("TAG", "getItemCount:" + imgUrls.size());
+        if(ids == null){
+            return files.size();
+        }
         return ids.size();
     }
 
@@ -143,6 +144,11 @@ public class WallapaperAdapter extends RecyclerView.Adapter<WallapaperAdapter.Wa
         this.ids = ids;
         this.res = res;
         this.paths = paths;
+    }
+
+    public WallapaperAdapter(List<File> files, Context context) {
+        this.context = context;
+        this.files = files;
     }
 
     public static class WallapaperViewHolder extends RecyclerView.ViewHolder {

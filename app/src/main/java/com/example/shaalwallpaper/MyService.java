@@ -5,28 +5,36 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.app.WallpaperManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.PixelFormat;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.Looper;
 import android.os.PowerManager;
+import android.service.wallpaper.WallpaperService;
 import android.util.Log;
+import android.view.GestureDetector;
+import android.view.Gravity;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.widget.LinearLayout;
 
-import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
-import androidx.work.PeriodicWorkRequest;
 
-import java.sql.Time;
-import java.util.HashMap;
+import com.example.shaalwallpaper.helper.TimerConfig;
+import com.example.shaalwallpaper.helper.Util;
+
+import java.util.Random;
 import java.util.Timer;
-import java.util.TimerTask;
 
-public class MyService extends Service implements SharedPreferences.OnSharedPreferenceChangeListener {
+public class MyService extends Service implements SharedPreferences.OnSharedPreferenceChangeListener{
     private static int i=0;
     private final String TAG = "MyService";
     public static boolean isServiceRunning;
@@ -35,14 +43,19 @@ public class MyService extends Service implements SharedPreferences.OnSharedPref
     //private final ScreenLockReceiver screenLockReceiver;
     private Timer timer;
     private String time = "15 min";
-    private long t = 900;
+    private long t = 60;
     IBinder mBinder = new LocalBinder();
     private Handler handler;
+    private Context context;
+    private WindowManager windowManager = null;
+    private LinearLayout linearLayout = null;
+    //GestureDetector gestureDetector = null;
     //private final HashMap<String, Long> map = new HashMap<String, Long>();
 
     public MyService() {
         Log.d(TAG, "constructor called");
         isServiceRunning = false;
+       // this.context = context;
         //screenLockReceiver = new ScreenLockReceiver();
 //        try {
 ////            new TimerConfig().registerPref(getApplicationContext(), (SharedPreferences.OnSharedPreferenceChangeListener) getApplicationContext());
@@ -67,7 +80,75 @@ public class MyService extends Service implements SharedPreferences.OnSharedPref
         Log.d(TAG, "onCreate called");
         createNotificationChannel();
         isServiceRunning = true;
+
+        //gestureDetector = new GestureDetector(this, new MyGestureListener());
+
         pm = (PowerManager) this.getSystemService(Context.POWER_SERVICE);
+
+
+
+//        linearLayout = new LinearLayout(this);
+//        LinearLayout.LayoutParams lp = new LinearLayout
+//                .LayoutParams(1, 1);
+//
+//        linearLayout.setLayoutParams(lp);
+//        linearLayout.setBackgroundColor(Color.TRANSPARENT);
+//        linearLayout.setOnTouchListener(new View.OnTouchListener() {
+//
+//            GestureDetector gestureDetector = new GestureDetector(getApplicationContext(), new GestureDetector.SimpleOnGestureListener() {
+//
+//                @Override
+//                public boolean onDoubleTap(MotionEvent motionEvent) {
+//                    Log.d(TAG, "onDoubleTap: HEY Successfulll");
+//                    return super.onDoubleTap(motionEvent);
+//                }
+//                @Override
+//                public void onLongPress(MotionEvent motionEvent) {
+//                    Log.d(TAG, "onLongPress: successfull");
+//                    super.onLongPress(motionEvent);
+//                }
+//            });
+//
+//            @Override
+//            public boolean onTouch(View v, MotionEvent event) {
+//                // pass the events to the gesture detector
+//                // a return value of true means the detector is handling it
+//                // a return value of false means the detector didn't
+//                // recognize the event
+//                //gestureDetector.onTouchEvent(event);
+//
+//                gestureDetector.onTouchEvent(event);
+//                //Log.d(TAG, "onTouch: don't know this is not working");
+//                return false;
+//
+//            }
+//        });
+//        windowManager = (WindowManager) this.getSystemService(Context.WINDOW_SERVICE);
+//        int LAYOUT_FLAG;
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//            LAYOUT_FLAG = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+//        } else {
+//            LAYOUT_FLAG = WindowManager.LayoutParams.TYPE_PHONE;
+//        }
+//
+//        WindowManager.LayoutParams mParams = new WindowManager.LayoutParams(
+//                1,
+//                1,
+//                LAYOUT_FLAG,
+//                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+//                | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+//                | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+//                PixelFormat.TRANSLUCENT
+//        );
+//
+//        linearLayout.setGravity(Gravity.TOP|Gravity.START);
+//
+//        windowManager.addView(linearLayout, mParams);
+
+        //WallpaperManager wm = (WallpaperManager)this.getSystemService(Context.WALLPAPER_SERVICE);
+
+
+
 
         // register receiver to listen for screen on events
 //        IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
@@ -118,10 +199,14 @@ public class MyService extends Service implements SharedPreferences.OnSharedPref
         @Override
         public void run() {
             if(i!=0 && pm.isInteractive())
-                new Util().setRandomWallpaper(MyService.this);
+                new Util().setRandomWallpaper(MyService.this, i);
             i++;
-            Log.d(TAG, "run: " + i);
-            Log.d(TAG, "run: " + t);
+            if(i>10000){
+                i = i%10000;
+            }
+
+            //Log.d(TAG, "run: " + i);
+            //Log.d(TAG, "run: " + t);
             handler.postDelayed(this, t*1000);
         }
     };
@@ -130,6 +215,9 @@ public class MyService extends Service implements SharedPreferences.OnSharedPref
     public IBinder onBind(Intent intent) {
         return mBinder;
     }
+
+
+
 
     public class LocalBinder extends Binder {
         public MyService getServerInstance() {
@@ -150,20 +238,29 @@ public class MyService extends Service implements SharedPreferences.OnSharedPref
         getT(time);
 
         Intent notificationIntent = new Intent(this, MainActivity.class);
+        Intent broadcastIntent = new Intent(this, ScreenLockReceiver.class);
         PendingIntent pendingIntent = null;
+        PendingIntent pendingIntent1 = null;
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S){
             pendingIntent = PendingIntent.getActivity(this,
                     0, notificationIntent, PendingIntent.FLAG_MUTABLE);
+
+            pendingIntent1 = PendingIntent.getBroadcast(this,
+                    0, broadcastIntent, PendingIntent.FLAG_MUTABLE);
         }
         else{
             pendingIntent = PendingIntent.getActivity(this,
                     0, notificationIntent, 0);
+
+            pendingIntent1 = PendingIntent.getBroadcast(this,
+                    0, broadcastIntent, 0);
         }
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Service is Running")
                 .setContentText("Wallpaper will change automatically in every " + time)
                 .setSmallIcon(R.drawable.ic_wallpaper_black_24dp)
-                .setContentIntent(pendingIntent)
+                .setContentIntent(pendingIntent1)
+                //.addAction(new Util().setRandomWallpaper(MyService.this, new Random().nextInt(1000)))
                 .setColor(getResources().getColor(R.color.colorPrimary))
                 .build();
         /*
@@ -210,6 +307,12 @@ public class MyService extends Service implements SharedPreferences.OnSharedPref
             handler.removeCallbacks(wallpaperChanger);
         }
 
+        if(windowManager != null){
+            if(linearLayout != null){
+                windowManager.removeView(linearLayout);
+            }
+        }
+
         // call MyReceiver which will restart this service via a worker
 //        Intent broadcastIntent = new Intent(this, MyReceiver.class);
 //        sendBroadcast(broadcastIntent);
@@ -226,6 +329,9 @@ public class MyService extends Service implements SharedPreferences.OnSharedPref
 
     public void getT(String time){
         switch (time){
+            case "1 min":
+                t = 60;
+                break;
             case "15 min":
                 t = 900;
                 break;
@@ -261,35 +367,78 @@ public class MyService extends Service implements SharedPreferences.OnSharedPref
             getT(time);
             //txtTotal.setText("Your total is: " + counter);
         }
-
     }
 
     public void setTime(String time){
-        this.time = time;
-        getT(time);
-        stopForeground(true);
-        Intent notificationIntent = new Intent(this, MainActivity.class);
-        PendingIntent pendingIntent = null;
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S){
-            pendingIntent = PendingIntent.getActivity(this,
-                    0, notificationIntent, PendingIntent.FLAG_MUTABLE);
+        if(!this.time.equals(time)) {
+            this.time = time;
+            getT(time);
+            stopForeground(true);
+            Intent notificationIntent = new Intent(this, MainActivity.class);
+            PendingIntent pendingIntent = null;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                pendingIntent = PendingIntent.getActivity(this,
+                        0, notificationIntent, PendingIntent.FLAG_MUTABLE);
+            } else {
+                pendingIntent = PendingIntent.getActivity(this,
+                        0, notificationIntent, 0);
+            }
+            Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
+                    .setContentTitle("Service is Running")
+                    .setContentText("Wallpaper will change automatically in every " + time)
+                    .setSmallIcon(R.drawable.ic_wallpaper_black_24dp)
+                    .setContentIntent(pendingIntent)
+                    .setColor(getResources().getColor(R.color.colorPrimary))
+                    .build();
+            /*
+             * A started service can use the startForeground API to put the service in a foreground state,
+             * where the system considers it to be something the user is actively aware of and thus not
+             * a candidate for killing when low on memory.
+             */
+            startForeground(1, notification);
         }
-        else{
-            pendingIntent = PendingIntent.getActivity(this,
-                    0, notificationIntent, 0);
-        }
-        Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle("Service is Running")
-                .setContentText("Wallpaper will change automatically in every " + time)
-                .setSmallIcon(R.drawable.ic_wallpaper_black_24dp)
-                .setContentIntent(pendingIntent)
-                .setColor(getResources().getColor(R.color.colorPrimary))
-                .build();
-        /*
-         * A started service can use the startForeground API to put the service in a foreground state,
-         * where the system considers it to be something the user is actively aware of and thus not
-         * a candidate for killing when low on memory.
-         */
-        startForeground(1, notification);
     }
 }
+
+//class MyGestureListener extends GestureDetector.SimpleOnGestureListener {
+//    private final String TAG = "MyService";
+//    @Override
+//    public boolean onDown(MotionEvent event) {
+//        Log.d("TAG","onDown: ");
+//
+//        // don't return false here or else none of the other
+//        // gestures will work
+//        return false;
+//    }
+//
+//    @Override
+//    public boolean onSingleTapConfirmed(MotionEvent e) {
+//        Log.i("TAG", "onSingleTapConfirmed: ");
+//        return false;
+//    }
+//
+//    @Override
+//    public void onLongPress(MotionEvent e) {
+//        Log.i("TAG", "onLongPress: ");
+//    }
+//
+//    @Override
+//    public boolean onDoubleTap(MotionEvent e) {
+//        Log.d(TAG, "onDoubleTap: ");
+//        return false;
+//    }
+//
+//    @Override
+//    public boolean onScroll(MotionEvent e1, MotionEvent e2,
+//                            float distanceX, float distanceY) {
+//        Log.i("TAG", "onScroll: ");
+//        return false;
+//    }
+//
+//    @Override
+//    public boolean onFling(MotionEvent event1, MotionEvent event2,
+//                           float velocityX, float velocityY) {
+//        Log.d("TAG", "onFling: ");
+//        return false;
+//    }
+//}

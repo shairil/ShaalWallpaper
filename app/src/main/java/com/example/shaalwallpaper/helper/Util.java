@@ -1,4 +1,4 @@
-package com.example.shaalwallpaper;
+package com.example.shaalwallpaper.helper;
 
 import android.app.Activity;
 import android.app.WallpaperManager;
@@ -6,9 +6,11 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Point;
 import android.os.Environment;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Display;
 import android.view.WindowManager;
 import android.widget.Toast;
 
@@ -45,41 +47,66 @@ public class Util {
         return file.length() / 1024;
     }
 
-    public void setRandomWallpaper(Context context) {
+    public void setRandomWallpaper(Context context, int i) {
         //checkPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE, STORAGE_PERMISSION_CODE);
-        File wallpaperDirectory = new File(context.getExternalFilesDir(null) + "/" + WALLPAPER_DIRECTORY);
+        File wallpaperDirectory = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath() + "/" + WALLPAPER_DIRECTORY);
+        //File wallpaperDirectory = new File(context.getExternalFilesDir(null) + "/" + WALLPAPER_DIRECTORY);
         if (wallpaperDirectory.exists()) {
             try {
+                Log.d(TAG, "Size: ");
                 File[] files = wallpaperDirectory.listFiles();
                 if (files != null && files.length > 0) {
                     Log.d(TAG, "Size: " + files.length);
-                    int randomFilePathIndex = getRandomInt(0, files.length - 1);
-                    File randomFile = files[randomFilePathIndex];
+                    i = i%(files.length-1);
+                    //int randomFilePathIndex = getRandomInt(0, files.length - 1);
+                    File randomFile = files[i];
                     long fileSizeInKb = getFileSizeInKb(randomFile);
                     long maxFileSizeInKb = 10240;
                     Log.d(TAG, "Wallpaper file size: " + fileSizeInKb);
                     if (fileSizeInKb <= maxFileSizeInKb) {
                         //checkPermission(context, Manifest.permission.SET_WALLPAPER, WALLPAPER_PERMISSION_CODE);
                         DisplayMetrics displayMetrics = new DisplayMetrics();
+                        //context.getWallpaperDesiredMinimumHeight()
+
+//                        Display display = context.getWindowManager().getDefaultDisplay();
+//                        Point point = new Point();
+//                        display.getSize(point);
                         displayMetrics = context.getResources().getDisplayMetrics();
                         int width = displayMetrics.widthPixels;
                         int height = displayMetrics.heightPixels;
+                        if(width > height){
+                            swap(width, height);
+                        }
                         String randomFilePath = randomFile.getAbsolutePath();
-                        BitmapFactory.Options options = new BitmapFactory.Options();
-                        Bitmap image = BitmapFactory.decodeFile(randomFilePath, options);
+
+                        //BitmapFactory.Options options = new BitmapFactory.Options();
+                        Bitmap image = BitmapFactory.decodeFile(randomFilePath);
+
                         WallpaperManager manager = WallpaperManager.getInstance(context);
                         WallpaperManager manager1 = WallpaperManager.getInstance(context);
-                        try {
-                            manager.setBitmap(image, null, true, WallpaperManager.FLAG_LOCK);
-                            manager.suggestDesiredDimensions(width, height);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                        new Thread(()->{
+                            try {
+
+                                Bitmap bitmapResized = Bitmap.createScaledBitmap(image, width, height, true);
+                                manager.suggestDesiredDimensions(bitmapResized.getWidth(), bitmapResized.getHeight());
+
+//                            Bitmap blank = BitmapHelper.createNewBitmap(manager.getDesiredMinimumWidth(), manager.getDesiredMinimumHeight());
+//                            Bitmap overlay = BitmapHelper.overlayIntoCentre(blank, image);
+                                manager.setBitmap(bitmapResized, null, true, WallpaperManager.FLAG_LOCK);
+                                //manager.suggestDesiredDimensions(width, height);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }).start();
 
                         new Thread(() -> {
                             try {
-                                manager1.setBitmap(image);
+//                                Bitmap blank = BitmapHelper.createNewBitmap(manager1.getDesiredMinimumWidth(), manager1.getDesiredMinimumHeight());
+//                                Bitmap overlay = BitmapHelper.overlayIntoCentre(blank, image);
+//                                manager1.setBitmap(overlay);
                                 manager1.suggestDesiredDimensions(width, height);
+                                manager1.setBitmap(image);
+
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
@@ -113,6 +140,13 @@ public class Util {
         else {
             Toast.makeText(context, "Permission already granted", Toast.LENGTH_SHORT).show();
         }
+    }
+
+
+    public void swap(int a, int b){
+        int temp = a;
+        a = b;
+        b = temp;
     }
 
     // This function is called when the user accepts or decline the permission.

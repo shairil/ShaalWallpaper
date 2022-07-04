@@ -4,7 +4,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
-import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
@@ -13,13 +12,16 @@ import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
 import android.Manifest;
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.PersistableBundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -33,6 +35,8 @@ import android.widget.Toast;
 
 import com.example.shaalwallpaper.Adapter.WallapaperAdapter;
 import com.example.shaalwallpaper.databinding.ActivityMainBinding;
+import com.example.shaalwallpaper.helper.Util;
+import com.example.shaalwallpaper.helper.webScrapping;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -41,8 +45,10 @@ import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
     ActivityMainBinding binding;
+    //ShakeListner shakeListner;
     int n = 0;
     int sha = 0;
+    private static int y;
     List<String> titles = null, Res = null, imgUrls=null;
     List<Integer> ids=null;
     //ProgressDialog mProgressDialog;
@@ -54,9 +60,11 @@ public class MainActivity extends AppCompatActivity {
     private Util util = new Util();
     private final String name = "ADD Data";
     private String time = "15 min";
+    private boolean toggle = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         super.onCreate(savedInstanceState);
@@ -67,8 +75,21 @@ public class MainActivity extends AppCompatActivity {
 //        Intent intent = new Intent(MainActivity.this, Collection.class);
 //        startActivity(intent);
         getSupportActionBar().hide();
+       // setSupportActionBar(binding.appBar);
+        //getSupportActionBar(binding.appBar)
+
+        Toast.makeText(this, "Network Available " + isNetworkAvailable(), Toast.LENGTH_SHORT).show();
+        if(!isNetworkAvailable()){
+            Log.d(TAG, "onCreate: " + "Hey Why didn't you awake");
+            Intent intent = new Intent(MainActivity.this, Collection.class);
+            startActivity(intent);
+        }
+
+
+
 
         binding.newProgressbar1.setVisibility(View.VISIBLE);
+
 
         try {
             SharedPreferences sharedPreferences = getSharedPreferences("Timer", MODE_PRIVATE);
@@ -106,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
         binding.wallpaperHome.setLayoutManager(manager);
         binding.wallpaperHome.setAdapter(adapter);
 
-        if(imgUrls.size() == 0) {
+        if(imgUrls.size() == 0 && isNetworkAvailable()) {
             AddDataThread dataThread = new AddDataThread(adapter);
             dataThread.setName(name + n);
             dataThread.start();
@@ -162,6 +183,8 @@ public class MainActivity extends AppCompatActivity {
 //    public void onStopServiceClick(View v) {
 //        stopService();
 //    }
+
+
 
     @Override
     protected void onDestroy() {
@@ -237,6 +260,7 @@ public class MainActivity extends AppCompatActivity {
             Log.d("MainActivty", "starting service from doWork");
             Intent intent = new Intent(this, MyService.class);
             intent.putExtra("time", time);
+            //intent.putExtra("c", this);
             ContextCompat.startForegroundService(this, intent);
             //this.context.startService(intent);
         }
@@ -250,7 +274,7 @@ public class MainActivity extends AppCompatActivity {
         PeriodicWorkRequest request =
                 new PeriodicWorkRequest.Builder(
                         MyWorker.class,
-                        30,
+                        17,
                         TimeUnit.MINUTES)
                         //.addTag(WORKER_TAG)
                         .build();
@@ -266,14 +290,35 @@ public class MainActivity extends AppCompatActivity {
 
     public void createDirectory(){
         Util.checkPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE, STORAGE_PERMISSION_CODE);
-        File file = new File(getExternalFilesDir(null) + "/" + WALLPAPER_DIRECTORY);
+        Log.d("Directory creation", "createDirectory: ");
+        File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath() + "/" + WALLPAPER_DIRECTORY);
+        //File file = new File(getExternalFilesDir(null) + "/" + WALLPAPER_DIRECTORY);
+
+        //File file2 = new File(getExternalFilesDir(null) + "/" + WALLPAPER_DIRECTORY);
+
+
         if(file.exists()){
+            Log.d("Directory creation", "createDirectory: ");
             return;
         }
 
         boolean results = file.mkdir();
+
+//        try{
+//            Log.d(TAG, "createDirectory: copying");
+//            Toast.makeText(this, "File will Copied Successfully", Toast.LENGTH_SHORT).show();
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+//                FileUtils.copy(new FileInputStream(file2), new FileOutputStream(file));
+//                Toast.makeText(this, "File Copied Successfully", Toast.LENGTH_SHORT).show();
+//            }
+//        }catch (Exception e){
+//            //Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+//            Log.d(TAG, "createDirectory: " + e.getMessage());
+//        }
+
+
         if(!results){
-            Log.d("Directory creation", "Failed at: " + Environment.getExternalStorageDirectory());
+            Log.d("Directory creation", "Failed at: " + Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES));
         }
         Log.d("Directory creation", ": " + results);
     }
@@ -324,11 +369,40 @@ public class MainActivity extends AppCompatActivity {
                         isScrolling = true;
                         binding.SHOWPROGRESS.setVisibility(View.GONE);
                     }
+
+                    if(recyclerView.SCROLL_STATE_IDLE==newState){
+                        // fragProductLl.setVisibility(View.VISIBLE);
+                        if(y<=0){
+                            if(toggle){
+                                show();
+                            }
+                        }
+                        else{
+                            y=0;
+                            if(!toggle){
+                                hide();
+                            }
+                        }
+                    }
+
+
                 }
 
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
+
+                y = dy;
+
+//                if(dy > 0){
+//                    if(!toggle)
+//                    hide();
+//                }
+//                else{
+//                    if(toggle)
+//                    show();
+//
+//                }
 
                 if(isScrolling && !recyclerView.canScrollVertically(1) && !check(n-1)){
                     sha++;
@@ -448,6 +522,47 @@ public class MainActivity extends AppCompatActivity {
                     (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
             manager.hideSoftInputFromWindow(view.getWindowToken(), 0);
         }
+    }
+
+    private void hide(){
+        toggle = !toggle;
+        binding.appBar.setVisibility(View.GONE);
+        binding.appBar.animate()
+                .translationY(-binding.appBar.getHeight())
+
+                .alpha(0.0f)
+                .setDuration(1000)
+                .setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        super.onAnimationEnd(animation);
+                        binding.appBar.setVisibility(View.GONE);
+                    }
+                });
+    }
+
+    private void show(){
+        toggle = !toggle;
+        binding.appBar.setVisibility(View.VISIBLE);
+        binding.appBar.animate()
+                .translationY(0)
+                .setDuration(5000)
+                .alpha(1.0f)
+                .setDuration(500)
+                .setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        super.onAnimationEnd(animation);
+                        binding.appBar.setVisibility(View.VISIBLE);
+                    }
+                });
+    }
+
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 }
 

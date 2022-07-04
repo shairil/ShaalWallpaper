@@ -1,22 +1,25 @@
 package com.example.shaalwallpaper;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
-import android.Manifest;
-import android.app.WallpaperManager;
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
@@ -24,22 +27,25 @@ import android.widget.Toast;
 
 import com.example.shaalwallpaper.Adapter.WallapaperAdapter;
 import com.example.shaalwallpaper.databinding.ActivityCollectionBinding;
-import com.example.shaalwallpaper.databinding.ActivityWallpaperBinding;
+import com.example.shaalwallpaper.helper.SingleMediaScanner;
+import com.example.shaalwallpaper.helper.TimerConfig;
+import com.example.shaalwallpaper.helper.Util;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
 public class Collection extends AppCompatActivity {
 
-    String[] timer = {"15 min", "30 min", "45 min", "1 hr", "6 hr", "8 hr", "1 day"};
+    String[] timer = {"1 min", "15 min", "30 min", "45 min", "1 hr", "6 hr", "8 hr", "1 day"};
     ActivityCollectionBinding binding;
     boolean mBounded;
     MyService mServer;
     private List<Bitmap> imgURLs;
     private List<String> titles, res, paths;
     private List<Integer> ids;
+    private List<File> filesImgs;
     private static final int STORAGE_PERMISSION_CODE = 101;
     private final String TAG = "CollectionClass";
     private final String WALLPAPER_DIRECTORY = "Shaal-Wallpaper";
@@ -51,6 +57,7 @@ public class Collection extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(binding.getRoot());
         titles = new ArrayList<>();
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         //getActionBar().setCustomView(binding.toolbar);
         getSupportActionBar().hide();
 //        setSupportActionBar(binding.toolbar);
@@ -58,6 +65,7 @@ public class Collection extends AppCompatActivity {
         res = new ArrayList<>();
         ids = new ArrayList<>();
         paths = new ArrayList<>();
+        filesImgs = new ArrayList<>();
         //SharedPreferences sharedPreferences = getSharedPreferences("Timer",MODE_PRIVATE);
         try {
             SharedPreferences sharedPreferences1 = getSharedPreferences("Timer", MODE_PRIVATE);
@@ -69,42 +77,32 @@ public class Collection extends AppCompatActivity {
 
         // Creating an Editor object to edit(write to the file)
 
-        WallapaperAdapter adapter = new WallapaperAdapter(imgURLs, titles, ids,this, paths);
+        ArrayAdapter ad = new ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, timer);
+        ad.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        binding.timer.setAdapter(ad);
+
+        WallapaperAdapter adapter = new WallapaperAdapter(filesImgs, this);
 //        adapter.setHasStableIds(true);
         binding.recyclerViewCollection.setHasFixedSize(true);
         binding.recyclerViewCollection.setLayoutManager(new StaggeredGridLayoutManager(2, LinearLayoutManager.VERTICAL));
         binding.recyclerViewCollection.setAdapter(adapter);
 
 
+
         new Thread(){
             @Override
             public void run() {
                 //super.run();
-                File wallpaperDirectory = new File(getExternalFilesDir(null) + "/" + WALLPAPER_DIRECTORY);
+                File wallpaperDirectory = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath() + "/" + WALLPAPER_DIRECTORY);
+                //File wallpaperDirectory = new File(getExternalFilesDir(null) + "/" + WALLPAPER_DIRECTORY);
                 new Util();
                 if (wallpaperDirectory.exists()) {
                     try {
                         File[] files = wallpaperDirectory.listFiles();
-                        if (files != null && files.length > 0) {
-
-                            for (File randomFile : files) {
-                                //Log.d(TAG, "Size: " + randomFile.length());
-                                //Log.d(TAG, "Name: " + randomFile.getName());
-                                int temp = imgURLs.size();
-                                String randomFilePath = randomFile.getAbsolutePath();
-                                BitmapFactory.Options options = new BitmapFactory.Options();
-                                Bitmap image = BitmapFactory.decodeFile(randomFilePath, options);
-                                //String img = image.toString();
-                                imgURLs.add(image);
-                                int i = randomFile.getName().indexOf('(');
-                                titles.add(randomFile.getName().substring(0, i));
-                                ids.add(Integer.valueOf(randomFile.getName().substring(i+1, i+7)));
-                                paths.add(randomFilePath);
-
-
-
-                                //Log.d(TAG, "onCreate: "  +img);
-                            }
+                        if(files != null && files.length > 0){
+                            filesImgs.clear();
+                            filesImgs.addAll(Arrays.asList(files));
                             Collection.this.runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
@@ -112,7 +110,36 @@ public class Collection extends AppCompatActivity {
                                 }
                             });
 
-                        } else {
+//                            for(File f: files){
+//                                new SingleMediaScanner(Collection.this, f);
+//                            }
+
+
+                        }
+//                        if (files != null && files.length > 0) {
+//
+//                            for (File randomFile : files) {
+//                                String randomFilePath = randomFile.getAbsolutePath();
+//                                BitmapFactory.Options options = new BitmapFactory.Options();
+//                                Bitmap image = BitmapFactory.decodeFile(randomFilePath, options);
+//                                //String img = image.toString();
+//                                imgURLs.add(image);
+//                                int i = randomFile.getName().indexOf('(');
+//                                titles.add(randomFile.getName().substring(0, i));
+//                                ids.add(Integer.valueOf(randomFile.getName().substring(i+1, i+7)));
+//                                paths.add(randomFilePath);
+//                            }
+//
+//                            Collection.this.runOnUiThread(new Runnable() {
+//                                @Override
+//                                public void run() {
+//                                    adapter.notifyDataSetChanged();
+//                                }
+//                            });
+//
+//
+//                        }
+                        else {
                             Collection.this.runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
@@ -138,10 +165,7 @@ public class Collection extends AppCompatActivity {
 
 
 
-        ArrayAdapter ad = new ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, timer);
-        ad.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
-        binding.timer.setAdapter(ad);
 
         int i = find(initial);
         //Log.d(TAG, "onCreate: " + i);
@@ -188,7 +212,38 @@ public class Collection extends AppCompatActivity {
         });
 
 
+        Window window = this.getWindow();
+//        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+//        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
 
+        if (Build.VERSION.SDK_INT >= 21) {
+            setWindowFlag(this, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, false);
+            setWindowFlag(this, WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION, false);
+            getWindow().setStatusBarColor(Color.TRANSPARENT);
+            getWindow().setNavigationBarColor(Color.TRANSPARENT);
+        }
+
+        if (Build.VERSION.SDK_INT >= 19 && Build.VERSION.SDK_INT < 21) {
+            setWindowFlag(this, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, true);
+            setWindowFlag(this, WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION, true);
+        }
+        if (Build.VERSION.SDK_INT >= 19) {
+            //getWindow().getDecorView().setSystemUiVisibility(View.);
+            getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+        }
+
+
+    }
+
+    public static void setWindowFlag(Activity activity, final int bits, boolean on) {
+        Window win = activity.getWindow();
+        WindowManager.LayoutParams winParams = win.getAttributes();
+        if (on) {
+            winParams.flags |= bits;
+        } else {
+            winParams.flags &= ~bits;
+        }
+        win.setAttributes(winParams);
     }
 
     int find(String temp){

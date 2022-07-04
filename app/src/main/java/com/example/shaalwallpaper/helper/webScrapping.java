@@ -1,4 +1,4 @@
-package com.example.shaalwallpaper;
+package com.example.shaalwallpaper.helper;
 
 import android.content.Context;
 import android.util.Log;

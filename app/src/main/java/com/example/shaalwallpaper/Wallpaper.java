@@ -1,32 +1,35 @@
 package com.example.shaalwallpaper;
 
+import android.app.Activity;
 import android.app.WallpaperManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
-import android.service.wallpaper.WallpaperService;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.example.shaalwallpaper.databinding.ActivityWallpaperBinding;
+import com.example.shaalwallpaper.helper.SingleMediaScanner;
+import com.example.shaalwallpaper.helper.webScrapping;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
@@ -46,11 +49,14 @@ public class Wallpaper extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+//        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+//                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
 
-        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+
+//        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+//                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+//        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+//                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
 
         String imgURL="";
         String path = "";
@@ -75,8 +81,14 @@ public class Wallpaper extends AppCompatActivity {
             try {
                 String imgU = web.getHighest(imgURL);
                 //Toast.makeText(this, "" + imgU, Toast.LENGTH_SHORT).show();
-                Picasso.get().load(imgU).into(binding.mainWallpaper);
+
+                Glide.with(this)
+                        .load(imgU)
+                        .dontAnimate()
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .into(binding.mainWallpaper);
             }catch (Exception e){
+                Toast.makeText(this, "Wallpaper Loaded Successfully", Toast.LENGTH_SHORT).show();
                 Picasso.get().load(imgURL).into(binding.mainWallpaper);
             }
         }
@@ -85,7 +97,14 @@ public class Wallpaper extends AppCompatActivity {
         else{
             BitmapFactory.Options options = new BitmapFactory.Options();
             Bitmap image = BitmapFactory.decodeFile(path, options);
-            binding.mainWallpaper.setImageBitmap(image);
+
+            Glide.with(this)
+                    .load(image)
+                    .dontAnimate()
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .into(binding.mainWallpaper);
+
+            //binding.mainWallpaper.setImageBitmap(image);
 
         }
 
@@ -119,14 +138,25 @@ public class Wallpaper extends AppCompatActivity {
             }
         });
 
+//
+        //binding.addToCollection.setBackground(R.color.UBlack);
+
+
+
         binding.addToCollection.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                File wallpaperDirectory = new File(getExternalFilesDir(null) + "/" + WALLPAPER_DIRECTORY);
+                //getExternalMediaDirs()
+                File wallpaperDirectory = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath() + "/" + WALLPAPER_DIRECTORY);
+                //File wallpaperDirectory = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES) + "/" + WALLPAPER_DIRECTORY);
+                //File wallpaperDirectory = new File(getExternalFilesDir(null) + "/" + WALLPAPER_DIRECTORY);
                 if(!wallpaperDirectory.exists()){
                     boolean results = wallpaperDirectory.mkdir();
                     Log.d("Wallpaper", "onClick: " + results);
                 }
+
+                Log.d("Wallpaper", "onClick: 1");
+
                 if(wallpaperDirectory.exists()) {
                     addCollection(binding.mainWallpaper, wallpaperDirectory, title, id);
                 }
@@ -146,13 +176,46 @@ public class Wallpaper extends AppCompatActivity {
             }
         });
 
+        binding.backBtn2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onBackPressed();
+            }
+        });
+
 
         Window window = this.getWindow();
 //        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
 //        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
 
-        window.setNavigationBarColor(this.getResources().getColor(R.color.colorPrimary));
-        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        if (Build.VERSION.SDK_INT >= 21) {
+            setWindowFlag(this, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, false);
+            setWindowFlag(this, WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION, false);
+            getWindow().setStatusBarColor(Color.TRANSPARENT);
+            getWindow().setNavigationBarColor(Color.TRANSPARENT);
+        }
+
+        if (Build.VERSION.SDK_INT >= 19 && Build.VERSION.SDK_INT < 21) {
+            setWindowFlag(this, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, true);
+            setWindowFlag(this, WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION, true);
+        }
+        if (Build.VERSION.SDK_INT >= 19) {
+            //getWindow().getDecorView().setSystemUiVisibility(View.);
+            getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+        }
+
+
+
+//        WindowInsetsControllerCompat windowInsetsController =
+//                ViewCompat.getWindowInsetsController(getWindow().getDecorView());
+//        if (windowInsetsController == null) {
+//            return;
+//        }
+//        // Hide both the status bar and the navigation bar
+//        windowInsetsController.show(WindowInsetsCompat.Type.navigationBars());
+
+        //window.setNavigationBarColor(this.getResources().getColor(R.color.colorPrimary));
+        //window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
 
 
 //        window.getDecorView().setSystemUiVisibility(
@@ -165,22 +228,33 @@ public class Wallpaper extends AppCompatActivity {
     }
 
     public void addCollection(ImageView imageView, File dir, String title, String id){
-        Bitmap bitmap = ((BitmapDrawable)imageView.getDrawable()).getBitmap();
+        Bitmap bitmap = ((BitmapDrawable)binding.mainWallpaper.getDrawable()).getBitmap();
+        if(bitmap == null){
+            Toast.makeText(this, "Some error occurred", Toast.LENGTH_SHORT).show();
+            Log.d("Wallpaper123", "addCollection: ");
+        }
+        title = title.replace(':', '_');
         File file = new File(dir, title + '(' +id + ')' + ".jpg");
         try{
             outputStream = new FileOutputStream(file);
+            new SingleMediaScanner(this, file);
         }catch(FileNotFoundException e){
-            Log.d("Wallpaper", "addCollection: " + e.getMessage());
+            Toast.makeText(this, "Failed " + e.getMessage() , Toast.LENGTH_SHORT).show();
+            Log.d("Wallpaper123", "addCollection: " + e.getMessage());
         }
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
+        try {
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
         try {
             outputStream.flush();
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         try {
             outputStream.close();
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -198,7 +272,7 @@ public class Wallpaper extends AppCompatActivity {
                 binding.toolbar2.setVisibility(View.GONE);
                 binding.linearLayout1.setVisibility(View.GONE);
             }
-        }, 1000);
+        }, 500);
 
 
         WindowInsetsControllerCompat windowInsetsController =
@@ -208,9 +282,19 @@ public class Wallpaper extends AppCompatActivity {
         }
         // Hide both the status bar and the navigation bar
         windowInsetsController.hide(WindowInsetsCompat.Type.navigationBars());
+        //WindowInsetsCompat.Type.
+        //windowInsetsController.hide(WindowInsetsCompat.Type.statusBars());
 
         this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+
+//                this.getWindow().getDecorView().setSystemUiVisibility(
+//                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+//                        |View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+//                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+//                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+//                        | View.SYSTEM_UI_FLAG_FULLSCREEN // hide status bar
+//                        | View.SYSTEM_UI_FLAG_IMMERSIVE);
 
 //        binding.mainWallpaper.setLayoutParams(new FrameLayout.LayoutParams(
 //                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT
@@ -226,6 +310,7 @@ public class Wallpaper extends AppCompatActivity {
         }
         // Hide both the status bar and the navigation bar
         windowInsetsController.show(WindowInsetsCompat.Type.navigationBars());
+        //windowInsetsController.show(WindowInsetsCompat.Type.statusBars());
 //        binding.mainWallpaper.setLayoutParams(new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
 //        binding.mainWallpaper.setScaleType(ImageView.ScaleType.FIT_XY);
         Animation animation = AnimationUtils.loadAnimation(this, R.anim.fadein);
@@ -243,6 +328,17 @@ public class Wallpaper extends AppCompatActivity {
 //                FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT
 //        ));
 //        binding.mainWallpaper.setAdjustViewBounds(true);
+    }
+
+    public static void setWindowFlag(Activity activity, final int bits, boolean on) {
+        Window win = activity.getWindow();
+        WindowManager.LayoutParams winParams = win.getAttributes();
+        if (on) {
+            winParams.flags |= bits;
+        } else {
+            winParams.flags &= ~bits;
+        }
+        win.setAttributes(winParams);
     }
 
 }
