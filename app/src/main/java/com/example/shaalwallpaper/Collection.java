@@ -25,9 +25,8 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.shaalwallpaper.Adapter.WallapaperAdapter;
+import com.example.shaalwallpaper.Adapter.WallpaperAdapter;
 import com.example.shaalwallpaper.databinding.ActivityCollectionBinding;
-import com.example.shaalwallpaper.helper.SingleMediaScanner;
 import com.example.shaalwallpaper.helper.TimerConfig;
 import com.example.shaalwallpaper.helper.Util;
 
@@ -82,7 +81,7 @@ public class Collection extends AppCompatActivity {
 
         binding.timer.setAdapter(ad);
 
-        WallapaperAdapter adapter = new WallapaperAdapter(filesImgs, this);
+        WallpaperAdapter adapter = new WallpaperAdapter(filesImgs, this);
 //        adapter.setHasStableIds(true);
         binding.recyclerViewCollection.setHasFixedSize(true);
         binding.recyclerViewCollection.setLayoutManager(new StaggeredGridLayoutManager(2, LinearLayoutManager.VERTICAL));

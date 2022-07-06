@@ -20,7 +20,9 @@ public class ScreenLockReceiver extends BroadcastReceiver {
         // This method is called when the BroadcastReceiver is receiving
         // an Intent broadcast.
         //String action = intent.getAction();
-        new Util().setRandomWallpaper(context, abs(new Random().nextInt()));
+        int width = intent.getIntExtra("width", 0);
+        int height = intent.getIntExtra("height", 0);
+        new Util().setRandomWallpaper(context, abs(new Random().nextInt()), width, height);
 //        switch (action) {
 //            //case Intent.
 //            case Intent.

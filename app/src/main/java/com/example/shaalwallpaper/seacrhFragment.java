@@ -15,7 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
-import com.example.shaalwallpaper.Adapter.WallapaperAdapter;
+import com.example.shaalwallpaper.Adapter.WallpaperAdapter;
 import com.example.shaalwallpaper.databinding.FragmentsearchresultsBinding;
 import com.example.shaalwallpaper.helper.webScrapping;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
@@ -36,7 +36,7 @@ public class seacrhFragment extends BottomSheetDialogFragment {
     List<String> titles, Res, imgUrls;
     List<Integer> ids;
 
-    private WallapaperAdapter adapter;
+    private WallpaperAdapter adapter;
 
     public seacrhFragment(String url, ProgressBar progressBar) {
         this.url = url;
@@ -66,7 +66,7 @@ public class seacrhFragment extends BottomSheetDialogFragment {
 //        textView.setVisibility(View.VISIBLE);
 
 
-        adapter = new WallapaperAdapter(imgUrls, titles, Res, ids, getContext());
+        adapter = new WallpaperAdapter(imgUrls, titles, Res, ids, getContext());
 
         StaggeredGridLayoutManager manager = new StaggeredGridLayoutManager(2, LinearLayoutManager.VERTICAL);
         binding.searchWallpaper.setLayoutManager(manager);
@@ -196,11 +196,11 @@ public class seacrhFragment extends BottomSheetDialogFragment {
 
     class AddDataThread1 extends Thread{
         webScrapping web = new webScrapping(getContext());
-        WallapaperAdapter adapter;
+        WallpaperAdapter adapter;
 
         List<String> imgs, tit, res;
         List<Integer> id;
-        AddDataThread1(WallapaperAdapter adapter){
+        AddDataThread1(WallpaperAdapter adapter){
             this.adapter = adapter;
         }
 

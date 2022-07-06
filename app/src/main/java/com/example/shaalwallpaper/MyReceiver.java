@@ -10,9 +10,9 @@ import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 
 public class MyReceiver extends BroadcastReceiver {
-    private String TAG = "MyReceiver";
     @Override
     public void onReceive(Context context, Intent intent) {
+        String TAG = "MyReceiver";
         Log.d(TAG, "onReceive called");
 
         WorkManager workManager = WorkManager.getInstance(context);

@@ -33,7 +33,7 @@ import android.widget.AbsListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.shaalwallpaper.Adapter.WallapaperAdapter;
+import com.example.shaalwallpaper.Adapter.WallpaperAdapter;
 import com.example.shaalwallpaper.databinding.ActivityMainBinding;
 import com.example.shaalwallpaper.helper.Util;
 import com.example.shaalwallpaper.helper.webScrapping;
@@ -41,6 +41,7 @@ import com.example.shaalwallpaper.helper.webScrapping;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
@@ -56,8 +57,8 @@ public class MainActivity extends AppCompatActivity {
     //int currItems, totalItems, scrolledItems;
     private static final int STORAGE_PERMISSION_CODE = 101;
     private static final int WALLPAPER_PERMISSION_CODE = 102;
-    private final String WALLPAPER_DIRECTORY = "Shaal-Wallpaper", TAG = "MAIN ACTIVITY";
-    private Util util = new Util();
+    private final String TAG = "MAIN ACTIVITY";
+    private final Util util = new Util();
     private final String name = "ADD Data";
     private String time = "15 min";
     private boolean toggle = false;
@@ -74,22 +75,18 @@ public class MainActivity extends AppCompatActivity {
 
 //        Intent intent = new Intent(MainActivity.this, Collection.class);
 //        startActivity(intent);
-        getSupportActionBar().hide();
+        Objects.requireNonNull(getSupportActionBar()).hide();
        // setSupportActionBar(binding.appBar);
         //getSupportActionBar(binding.appBar)
 
         Toast.makeText(this, "Network Available " + isNetworkAvailable(), Toast.LENGTH_SHORT).show();
         if(!isNetworkAvailable()){
-            Log.d(TAG, "onCreate: " + "Hey Why didn't you awake");
+            //Log.d(TAG, "onCreate: " + "Hey Why didn't you awake");
             Intent intent = new Intent(MainActivity.this, Collection.class);
             startActivity(intent);
         }
 
-
-
-
         binding.newProgressbar1.setVisibility(View.VISIBLE);
-
 
         try {
             SharedPreferences sharedPreferences = getSharedPreferences("Timer", MODE_PRIVATE);
@@ -115,12 +112,14 @@ public class MainActivity extends AppCompatActivity {
             Res = savedInstanceState.getStringArrayList("Resolution");
             ids = savedInstanceState.getIntegerArrayList("ids");
             binding.newProgressbar1.setVisibility(View.GONE);
+            n = imgUrls.size()/24;
         }
+
 //        SharedPreferences sharedPreferences = getSharedPreferences("Timer",MODE_PRIVATE);
 //        SharedPreferences.Editor myEdit = sharedPreferences.edit();
 //        myEdit.putString("time", "15 min");
 //        myEdit.apply();
-        WallapaperAdapter adapter = new WallapaperAdapter(imgUrls, titles, Res, ids, this);
+        WallpaperAdapter adapter = new WallpaperAdapter(imgUrls, titles, Res, ids, this);
         //binding.wallpaperHome.setHasFixedSize(true);
 
         StaggeredGridLayoutManager manager = new StaggeredGridLayoutManager(2, LinearLayoutManager.VERTICAL);
@@ -132,7 +131,6 @@ public class MainActivity extends AppCompatActivity {
             dataThread.setName(name + n);
             dataThread.start();
         }
-
 
         binding.extendedFloatingActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -170,8 +168,6 @@ public class MainActivity extends AppCompatActivity {
 
         window.setNavigationBarColor(this.getResources().getColor(R.color.colorPrimary));
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-
-
 
         startServiceViaWorker();
     }
@@ -224,7 +220,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onSaveInstanceState(Bundle savedInstanceState) {
+    public void onSaveInstanceState(@NonNull Bundle savedInstanceState) {
         //savedInstanceState.
         Log.d(TAG, "onSaveInstanceState: called");
 
@@ -235,6 +231,7 @@ public class MainActivity extends AppCompatActivity {
             savedInstanceState.putStringArrayList("Resolution", (ArrayList<String>) Res);
             savedInstanceState.putStringArrayList("titles", (ArrayList<String>) titles);
             savedInstanceState.putIntegerArrayList("ids", (ArrayList<Integer>) ids);
+
         }
     }
 
@@ -257,14 +254,15 @@ public class MainActivity extends AppCompatActivity {
 
     public void startServiceViaWorker() {
         if (!MyService.isServiceRunning) {
-            Log.d("MainActivty", "starting service from doWork");
+            //Log.d("MainActivty", "starting service from doWork");
             Intent intent = new Intent(this, MyService.class);
             intent.putExtra("time", time);
             //intent.putExtra("c", this);
             ContextCompat.startForegroundService(this, intent);
             //this.context.startService(intent);
         }
-        Log.d("TAG", "startServiceViaWorker called");
+        //Log.d("TAG", "startServiceViaWorker called");
+
         String UNIQUE_WORK_NAME = "StartMyServiceViaWorker";
         //String WORKER_TAG = "MyServiceWorkerTag";
         WorkManager workManager = WorkManager.getInstance(this);
@@ -291,6 +289,7 @@ public class MainActivity extends AppCompatActivity {
     public void createDirectory(){
         Util.checkPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE, STORAGE_PERMISSION_CODE);
         Log.d("Directory creation", "createDirectory: ");
+        String WALLPAPER_DIRECTORY = "Shaal-Wallpaper";
         File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath() + "/" + WALLPAPER_DIRECTORY);
         //File file = new File(getExternalFilesDir(null) + "/" + WALLPAPER_DIRECTORY);
 
@@ -351,11 +350,11 @@ public class MainActivity extends AppCompatActivity {
 
     class RecyclerThread extends Thread{
 
-        WallapaperAdapter adapter;
+        WallpaperAdapter adapter;
         int n = 1;
         webScrapping web = new webScrapping(MainActivity.this);
 
-        RecyclerThread(WallapaperAdapter adapter){
+        RecyclerThread(WallpaperAdapter adapter){
             this.adapter = adapter;
         }
 
@@ -370,7 +369,7 @@ public class MainActivity extends AppCompatActivity {
                         binding.SHOWPROGRESS.setVisibility(View.GONE);
                     }
 
-                    if(recyclerView.SCROLL_STATE_IDLE==newState){
+                    if(RecyclerView.SCROLL_STATE_IDLE ==newState){
                         // fragProductLl.setVisibility(View.VISIBLE);
                         if(y<=0){
                             if(toggle){
@@ -384,8 +383,6 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
                     }
-
-
                 }
 
             @Override
@@ -393,7 +390,6 @@ public class MainActivity extends AppCompatActivity {
                 super.onScrolled(recyclerView, dx, dy);
 
                 y = dy;
-
 //                if(dy > 0){
 //                    if(!toggle)
 //                    hide();
@@ -403,7 +399,6 @@ public class MainActivity extends AppCompatActivity {
 //                    show();
 //
 //                }
-
                 if(isScrolling && !recyclerView.canScrollVertically(1) && !check(n-1)){
                     sha++;
                     isScrolling = false;
@@ -425,11 +420,11 @@ public class MainActivity extends AppCompatActivity {
 
     class AddDataThread extends Thread{
         webScrapping web = new webScrapping(MainActivity.this);
-        WallapaperAdapter adapter;
+        WallpaperAdapter adapter;
 
         List<String> imgs, tit, res;
         List<Integer> id;
-        AddDataThread(WallapaperAdapter adapter){
+        AddDataThread(WallpaperAdapter adapter){
             this.adapter = adapter;
         }
 
@@ -474,9 +469,6 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             });
-
-
-
         }
     }
 
@@ -505,8 +497,7 @@ public class MainActivity extends AppCompatActivity {
         //show();
     }
 
-    private void closeKeyboard()
-    {
+    private void closeKeyboard() {
         // this will give us the view
         // which is currently focus
         // in this layout

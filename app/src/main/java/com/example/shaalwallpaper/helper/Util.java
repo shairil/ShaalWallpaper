@@ -27,30 +27,29 @@ import java.util.concurrent.ThreadLocalRandom;
 public class Util {
     private static final int STORAGE_PERMISSION_CODE = 101;
     private static final int WALLPAPER_PERMISSION_CODE = 102;
-    private final String TAG = "Util";
-    private final String WALLPAPER_DIRECTORY = "Shaal-Wallpaper";
 
     /**
      * @return integer in range [min, max]
      */
-    public static int getRandomInt(int min, int max) {
-        return Math.abs(ThreadLocalRandom.current().nextInt()) % max;
-        //return new Random().nextInt((max - min) + 1) + min;
-    }
+//    public static int getRandomInt(int min, int max) {
+//        return Math.abs(ThreadLocalRandom.current().nextInt()) % max;
+//    }
 
-    public static boolean hasPermission(Context context, String permission) {
-        int result = ContextCompat.checkSelfPermission(context, permission);
-        return result == PackageManager.PERMISSION_GRANTED;
-    }
+//    public static boolean hasPermission(Context context, String permission) {
+//        int result = ContextCompat.checkSelfPermission(context, permission);
+//        return result == PackageManager.PERMISSION_GRANTED;
+//    }
 
     public static long getFileSizeInKb(File file) {
         return file.length() / 1024;
     }
 
-    public void setRandomWallpaper(Context context, int i) {
+    public void setRandomWallpaper(Context context, int i, int width, int height) {
         //checkPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE, STORAGE_PERMISSION_CODE);
+        String WALLPAPER_DIRECTORY = "Shaal-Wallpaper";
         File wallpaperDirectory = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath() + "/" + WALLPAPER_DIRECTORY);
         //File wallpaperDirectory = new File(context.getExternalFilesDir(null) + "/" + WALLPAPER_DIRECTORY);
+        String TAG = "Util";
         if (wallpaperDirectory.exists()) {
             try {
                 Log.d(TAG, "Size: ");
@@ -65,17 +64,14 @@ public class Util {
                     Log.d(TAG, "Wallpaper file size: " + fileSizeInKb);
                     if (fileSizeInKb <= maxFileSizeInKb) {
                         //checkPermission(context, Manifest.permission.SET_WALLPAPER, WALLPAPER_PERMISSION_CODE);
-                        DisplayMetrics displayMetrics = new DisplayMetrics();
-                        //context.getWallpaperDesiredMinimumHeight()
-
-//                        Display display = context.getWindowManager().getDefaultDisplay();
-//                        Point point = new Point();
-//                        display.getSize(point);
-                        displayMetrics = context.getResources().getDisplayMetrics();
-                        int width = displayMetrics.widthPixels;
-                        int height = displayMetrics.heightPixels;
-                        if(width > height){
-                            swap(width, height);
+                        if(width == 0 && height == 0) {
+                            DisplayMetrics displayMetrics = new DisplayMetrics();
+                            displayMetrics = context.getResources().getDisplayMetrics();
+                            width = displayMetrics.widthPixels;
+                            height = displayMetrics.heightPixels;
+                            if (width > height) {
+                                swap(width, height);
+                            }
                         }
                         String randomFilePath = randomFile.getAbsolutePath();
 
@@ -84,27 +80,26 @@ public class Util {
 
                         WallpaperManager manager = WallpaperManager.getInstance(context);
                         WallpaperManager manager1 = WallpaperManager.getInstance(context);
+                        int finalWidth = width;
+                        int finalHeight = height;
                         new Thread(()->{
                             try {
 
-                                Bitmap bitmapResized = Bitmap.createScaledBitmap(image, width, height, true);
+                                Bitmap bitmapResized = Bitmap.createScaledBitmap(image, finalWidth, finalHeight, true);
                                 manager.suggestDesiredDimensions(bitmapResized.getWidth(), bitmapResized.getHeight());
-
-//                            Bitmap blank = BitmapHelper.createNewBitmap(manager.getDesiredMinimumWidth(), manager.getDesiredMinimumHeight());
-//                            Bitmap overlay = BitmapHelper.overlayIntoCentre(blank, image);
                                 manager.setBitmap(bitmapResized, null, true, WallpaperManager.FLAG_LOCK);
-                                //manager.suggestDesiredDimensions(width, height);
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
                         }).start();
+
 
                         new Thread(() -> {
                             try {
 //                                Bitmap blank = BitmapHelper.createNewBitmap(manager1.getDesiredMinimumWidth(), manager1.getDesiredMinimumHeight());
 //                                Bitmap overlay = BitmapHelper.overlayIntoCentre(blank, image);
 //                                manager1.setBitmap(overlay);
-                                manager1.suggestDesiredDimensions(width, height);
+                                manager1.suggestDesiredDimensions(finalWidth, finalHeight);
                                 manager1.setBitmap(image);
 
                             } catch (IOException e) {
@@ -118,13 +113,13 @@ public class Util {
                     Log.d(TAG, "Wallpaper directory is empty: ");
                 }
             } catch (Exception e) {
-                Log.e(TAG, e.getMessage());
+                //Log.e(TAG, e.getMessage());
                 e.printStackTrace();
             }
 
         } else {
             boolean createDirectoryResult = wallpaperDirectory.mkdir();
-            Log.d(TAG, "Wallpaper directory creation result: " + createDirectoryResult);
+            //Log.d(TAG, "Wallpaper directory creation result: " + createDirectoryResult);
         }
 
     }
@@ -148,10 +143,4 @@ public class Util {
         a = b;
         b = temp;
     }
-
-    // This function is called when the user accepts or decline the permission.
-    // Request Code is used to check which permission called this function.
-    // This request code is provided when the user is prompt for permission.
-
-
 }

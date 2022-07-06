@@ -5,33 +5,19 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.app.WallpaperManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
-import android.graphics.PixelFormat;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
-import android.service.wallpaper.WallpaperService;
+import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.GestureDetector;
-import android.view.Gravity;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.WindowManager;
-import android.widget.LinearLayout;
-
 import androidx.core.app.NotificationCompat;
-
 import com.example.shaalwallpaper.helper.TimerConfig;
 import com.example.shaalwallpaper.helper.Util;
-
-import java.util.Random;
 import java.util.Timer;
 
 public class MyService extends Service implements SharedPreferences.OnSharedPreferenceChangeListener{
@@ -41,14 +27,14 @@ public class MyService extends Service implements SharedPreferences.OnSharedPref
     private final String CHANNEL_ID = "NOTIFICATION_CHANNEL";
     PowerManager pm;
     //private final ScreenLockReceiver screenLockReceiver;
-    private Timer timer;
+    private final Timer timer;
     private String time = "15 min";
     private long t = 60;
     IBinder mBinder = new LocalBinder();
     private Handler handler;
-    private Context context;
-    private WindowManager windowManager = null;
-    private LinearLayout linearLayout = null;
+    private int width=0, height=0;
+//    private final WindowManager windowManager = null;
+//    private final LinearLayout linearLayout = null;
     //GestureDetector gestureDetector = null;
     //private final HashMap<String, Long> map = new HashMap<String, Long>();
 
@@ -85,8 +71,30 @@ public class MyService extends Service implements SharedPreferences.OnSharedPref
 
         pm = (PowerManager) this.getSystemService(Context.POWER_SERVICE);
 
+        try{
+            DisplayMetrics displayMetrics = new DisplayMetrics();
+            displayMetrics = this.getResources().getDisplayMetrics();
+            width = displayMetrics.widthPixels;
+            height = displayMetrics.heightPixels;
+        } catch (Exception e) {
+            //Log.d(TAG, "onCreate: display" + e.getMessage());
+            e.printStackTrace();
+        }
 
 
+        //Log.d(TAG, "onCreate: " + width + " " + height);
+
+        try {
+            SharedPreferences sharedPreferences = this.getSharedPreferences("Timer", MODE_PRIVATE);
+            time = sharedPreferences.getString("time", "15 min");
+            //Log.d(TAG, "onCreate: " + " Hey Successfully got data from the shared preferences. " + time);
+            getT(time);
+        }catch (Exception e) {
+            //Log.d(TAG, "onCreate: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+//
 //        linearLayout = new LinearLayout(this);
 //        LinearLayout.LayoutParams lp = new LinearLayout
 //                .LayoutParams(1, 1);
@@ -144,11 +152,9 @@ public class MyService extends Service implements SharedPreferences.OnSharedPref
 //        linearLayout.setGravity(Gravity.TOP|Gravity.START);
 //
 //        windowManager.addView(linearLayout, mParams);
-
-        //WallpaperManager wm = (WallpaperManager)this.getSystemService(Context.WALLPAPER_SERVICE);
-
-
-
+//
+//
+//
 
         // register receiver to listen for screen on events
 //        IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
@@ -198,15 +204,15 @@ public class MyService extends Service implements SharedPreferences.OnSharedPref
     Runnable wallpaperChanger = new Runnable() {
         @Override
         public void run() {
-            if(i!=0 && pm.isInteractive())
-                new Util().setRandomWallpaper(MyService.this, i);
-            i++;
+            if(pm.isInteractive()) {
+                new Util().setRandomWallpaper(MyService.this, i, width, height);
+                //Log.d(TAG, "run: " + i);
+                //Log.d(TAG, "run: " + t);
+                i++;
+            }
             if(i>10000){
                 i = i%10000;
             }
-
-            //Log.d(TAG, "run: " + i);
-            //Log.d(TAG, "run: " + t);
             handler.postDelayed(this, t*1000);
         }
     };
@@ -215,9 +221,6 @@ public class MyService extends Service implements SharedPreferences.OnSharedPref
     public IBinder onBind(Intent intent) {
         return mBinder;
     }
-
-
-
 
     public class LocalBinder extends Binder {
         public MyService getServerInstance() {
@@ -228,7 +231,7 @@ public class MyService extends Service implements SharedPreferences.OnSharedPref
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(TAG, "onStartCommand called");
+        //Log.d(TAG, "onStartCommand called");
         try {
             time = intent.getStringExtra("time");
         }catch (Exception e){
@@ -237,20 +240,16 @@ public class MyService extends Service implements SharedPreferences.OnSharedPref
 
         getT(time);
 
-        Intent notificationIntent = new Intent(this, MainActivity.class);
         Intent broadcastIntent = new Intent(this, ScreenLockReceiver.class);
-        PendingIntent pendingIntent = null;
+        broadcastIntent.putExtra("width", width);
+        broadcastIntent.putExtra("height", height);
         PendingIntent pendingIntent1 = null;
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S){
-            pendingIntent = PendingIntent.getActivity(this,
-                    0, notificationIntent, PendingIntent.FLAG_MUTABLE);
 
             pendingIntent1 = PendingIntent.getBroadcast(this,
                     0, broadcastIntent, PendingIntent.FLAG_MUTABLE);
         }
         else{
-            pendingIntent = PendingIntent.getActivity(this,
-                    0, notificationIntent, 0);
 
             pendingIntent1 = PendingIntent.getBroadcast(this,
                     0, broadcastIntent, 0);
@@ -260,7 +259,6 @@ public class MyService extends Service implements SharedPreferences.OnSharedPref
                 .setContentText("Wallpaper will change automatically in every " + time)
                 .setSmallIcon(R.drawable.ic_wallpaper_black_24dp)
                 .setContentIntent(pendingIntent1)
-                //.addAction(new Util().setRandomWallpaper(MyService.this, new Random().nextInt(1000)))
                 .setColor(getResources().getColor(R.color.colorPrimary))
                 .build();
         /*
@@ -305,12 +303,6 @@ public class MyService extends Service implements SharedPreferences.OnSharedPref
 
         if(handler != null){
             handler.removeCallbacks(wallpaperChanger);
-        }
-
-        if(windowManager != null){
-            if(linearLayout != null){
-                windowManager.removeView(linearLayout);
-            }
         }
 
         // call MyReceiver which will restart this service via a worker
@@ -400,45 +392,3 @@ public class MyService extends Service implements SharedPreferences.OnSharedPref
     }
 }
 
-//class MyGestureListener extends GestureDetector.SimpleOnGestureListener {
-//    private final String TAG = "MyService";
-//    @Override
-//    public boolean onDown(MotionEvent event) {
-//        Log.d("TAG","onDown: ");
-//
-//        // don't return false here or else none of the other
-//        // gestures will work
-//        return false;
-//    }
-//
-//    @Override
-//    public boolean onSingleTapConfirmed(MotionEvent e) {
-//        Log.i("TAG", "onSingleTapConfirmed: ");
-//        return false;
-//    }
-//
-//    @Override
-//    public void onLongPress(MotionEvent e) {
-//        Log.i("TAG", "onLongPress: ");
-//    }
-//
-//    @Override
-//    public boolean onDoubleTap(MotionEvent e) {
-//        Log.d(TAG, "onDoubleTap: ");
-//        return false;
-//    }
-//
-//    @Override
-//    public boolean onScroll(MotionEvent e1, MotionEvent e2,
-//                            float distanceX, float distanceY) {
-//        Log.i("TAG", "onScroll: ");
-//        return false;
-//    }
-//
-//    @Override
-//    public boolean onFling(MotionEvent event1, MotionEvent event2,
-//                           float velocityX, float velocityY) {
-//        Log.d("TAG", "onFling: ");
-//        return false;
-//    }
-//}
