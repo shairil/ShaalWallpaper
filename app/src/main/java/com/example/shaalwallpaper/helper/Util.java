@@ -4,9 +4,11 @@ import android.app.Activity;
 import android.app.WallpaperManager;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Point;
+import android.media.VolumeShaper;
 import android.os.Environment;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -44,7 +46,7 @@ public class Util {
         return file.length() / 1024;
     }
 
-    public void setRandomWallpaper(Context context, int i, int width, int height) {
+    public int setRandomWallpaper(Context context, int i, int width, int height) {
         //checkPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE, STORAGE_PERMISSION_CODE);
         String WALLPAPER_DIRECTORY = "Shaal-Wallpaper";
         File wallpaperDirectory = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath() + "/" + WALLPAPER_DIRECTORY);
@@ -55,6 +57,11 @@ public class Util {
                 Log.d(TAG, "Size: ");
                 File[] files = wallpaperDirectory.listFiles();
                 if (files != null && files.length > 0) {
+                    if(context.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
+                        Log.d("MyService", "setRandomWallpaper: " + " Here we successfully saved");
+                        //i--;
+                        return 0;
+                    }
                     Log.d(TAG, "Size: " + files.length);
                     i = i%(files.length-1);
                     //int randomFilePathIndex = getRandomInt(0, files.length - 1);
@@ -65,7 +72,7 @@ public class Util {
                     if (fileSizeInKb <= maxFileSizeInKb) {
                         //checkPermission(context, Manifest.permission.SET_WALLPAPER, WALLPAPER_PERMISSION_CODE);
                         if(width == 0 && height == 0) {
-                            DisplayMetrics displayMetrics = new DisplayMetrics();
+                            DisplayMetrics displayMetrics;
                             displayMetrics = context.getResources().getDisplayMetrics();
                             width = displayMetrics.widthPixels;
                             height = displayMetrics.heightPixels;
@@ -85,42 +92,54 @@ public class Util {
                         new Thread(()->{
                             try {
 
-                                Bitmap bitmapResized = Bitmap.createScaledBitmap(image, finalWidth, finalHeight, true);
-                                manager.suggestDesiredDimensions(bitmapResized.getWidth(), bitmapResized.getHeight());
-                                manager.setBitmap(bitmapResized, null, true, WallpaperManager.FLAG_LOCK);
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }).start();
+                                Bitmap bitmapResized = Bitmap.createScaledBitmap(image,
+                                        finalWidth, finalHeight, true);
+                                manager.suggestDesiredDimensions(bitmapResized.getWidth(),
+                                        bitmapResized.getHeight());
+                                manager.setBitmap(bitmapResized, null, true,
+                                        WallpaperManager.FLAG_LOCK);
 
-
-                        new Thread(() -> {
-                            try {
-//                                Bitmap blank = BitmapHelper.createNewBitmap(manager1.getDesiredMinimumWidth(), manager1.getDesiredMinimumHeight());
-//                                Bitmap overlay = BitmapHelper.overlayIntoCentre(blank, image);
-//                                manager1.setBitmap(overlay);
+                                //Log.d(TAG, "setRandomWallpaper: Wallpaper change successful");
                                 manager1.suggestDesiredDimensions(finalWidth, finalHeight);
                                 manager1.setBitmap(image);
-
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
                         }).start();
+
+
+//                        new Thread(() -> {
+//                            try {
+////                                Bitmap blank = BitmapHelper.createNewBitmap(manager1.getDesiredMinimumWidth(), manager1.getDesiredMinimumHeight());
+////                                Bitmap overlay = BitmapHelper.overlayIntoCentre(blank, image);
+////                                manager1.setBitmap(overlay);
+//
+//
+//                            } catch (IOException e) {
+//                                e.printStackTrace();
+//                            }
+//                        }).start();
                     } else {
                         Log.d(TAG, "File size exceeds limit: " + maxFileSizeInKb);
+                        return 0;
                     }
                 } else {
                     Log.d(TAG, "Wallpaper directory is empty: ");
+                    return 0;
                 }
             } catch (Exception e) {
                 //Log.e(TAG, e.getMessage());
                 e.printStackTrace();
+                return 0;
             }
 
         } else {
             boolean createDirectoryResult = wallpaperDirectory.mkdir();
+            return 0;
             //Log.d(TAG, "Wallpaper directory creation result: " + createDirectoryResult);
         }
+
+        return 1;
 
     }
 

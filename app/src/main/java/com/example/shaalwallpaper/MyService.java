@@ -8,6 +8,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Handler;
@@ -19,6 +20,7 @@ import androidx.core.app.NotificationCompat;
 import com.example.shaalwallpaper.helper.TimerConfig;
 import com.example.shaalwallpaper.helper.Util;
 import java.util.Timer;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class MyService extends Service implements SharedPreferences.OnSharedPreferenceChangeListener{
     private static int i=0;
@@ -70,9 +72,11 @@ public class MyService extends Service implements SharedPreferences.OnSharedPref
         //gestureDetector = new GestureDetector(this, new MyGestureListener());
 
         pm = (PowerManager) this.getSystemService(Context.POWER_SERVICE);
+        Configuration orientation = this.getResources().getConfiguration();
 
         try{
-            DisplayMetrics displayMetrics = new DisplayMetrics();
+            new DisplayMetrics();
+            DisplayMetrics displayMetrics;
             displayMetrics = this.getResources().getDisplayMetrics();
             width = displayMetrics.widthPixels;
             height = displayMetrics.heightPixels;
@@ -184,38 +188,48 @@ public class MyService extends Service implements SharedPreferences.OnSharedPref
 
         //Log.d(TAG, "onCreate: " + time);
         //Log.d(TAG, "Outside run: " + t);
-        handler = new Handler();
-//        handler.post(new Runnable() {
-//            @Override
-//            public void run() {
-//                if(i!=0)
-//                    new Util().setRandomWallpaper(MyService.this);
-//                i++;
-//                Log.d(TAG, "run: " + i);
-//                Log.d(TAG, "run: " + t);
-//                handler.postDelayed(this, t*10);
-//            }
-//        });
 
-        wallpaperChanger.run();
+
+
+        handler = new Handler();
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                if(pm.isInteractive()) {
+                    if(new Util().setRandomWallpaper(MyService.this, i, width, height) == 1)
+                        i++;
+//                    Log.d(TAG, "run: " + i);
+//                    Log.d(TAG, "run: " + t);
+
+                }
+                if(i>10000){
+                    i = i%10000;
+                }
+                handler.postDelayed(this, t*1000);
+            }
+        });
+
+        //wallpaperChanger.run();
 
     }
 
-    Runnable wallpaperChanger = new Runnable() {
-        @Override
-        public void run() {
-            if(pm.isInteractive()) {
-                new Util().setRandomWallpaper(MyService.this, i, width, height);
-                //Log.d(TAG, "run: " + i);
-                //Log.d(TAG, "run: " + t);
-                i++;
-            }
-            if(i>10000){
-                i = i%10000;
-            }
-            handler.postDelayed(this, t*1000);
-        }
-    };
+//    Runnable wallpaperChanger = new Runnable() {
+//
+//        @Override
+//        public void run() {
+//
+//            if(pm.isInteractive()) {
+//                new Util().setRandomWallpaper(MyService.this, i, width, height);
+//                //Log.d(TAG, "run: " + i);
+//                //Log.d(TAG, "run: " + t);
+//                i++;
+//            }
+//            if(i>10000){
+//                i = i%10000;
+//            }
+//            handler.postDelayed(this, t*1000);
+//        }
+//    };
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -243,7 +257,7 @@ public class MyService extends Service implements SharedPreferences.OnSharedPref
         Intent broadcastIntent = new Intent(this, ScreenLockReceiver.class);
         broadcastIntent.putExtra("width", width);
         broadcastIntent.putExtra("height", height);
-        PendingIntent pendingIntent1 = null;
+        PendingIntent pendingIntent1;
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S){
 
             pendingIntent1 = PendingIntent.getBroadcast(this,
@@ -259,7 +273,7 @@ public class MyService extends Service implements SharedPreferences.OnSharedPref
                 .setContentText("Wallpaper will change automatically in every " + time)
                 .setSmallIcon(R.drawable.ic_wallpaper_black_24dp)
                 .setContentIntent(pendingIntent1)
-                .setColor(getResources().getColor(R.color.colorPrimary))
+                .setColor(getColor(R.color.colorPrimary))
                 .build();
         /*
          * A started service can use the startForeground API to put the service in a foreground state,
@@ -302,17 +316,18 @@ public class MyService extends Service implements SharedPreferences.OnSharedPref
         }
 
         if(handler != null){
-            handler.removeCallbacks(wallpaperChanger);
+            handler.removeCallbacks(null);
+
+            //handler.removeCallbacks(wallpaperChanger);
         }
 
         // call MyReceiver which will restart this service via a worker
-//        Intent broadcastIntent = new Intent(this, MyReceiver.class);
-//        sendBroadcast(broadcastIntent);
+        Intent broadcastIntent = new Intent(this, MyReceiver.class);
+        sendBroadcast(broadcastIntent);
 
         super.onDestroy();
     }
 
-    // Not getting called on Xiaomi Redmi Note 7S even when autostart permission is granted
     @Override
     public void onTaskRemoved(Intent rootIntent) {
         Log.d(TAG, "onTaskRemoved called");
@@ -366,21 +381,26 @@ public class MyService extends Service implements SharedPreferences.OnSharedPref
             this.time = time;
             getT(time);
             stopForeground(true);
-            Intent notificationIntent = new Intent(this, MainActivity.class);
-            PendingIntent pendingIntent = null;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                pendingIntent = PendingIntent.getActivity(this,
-                        0, notificationIntent, PendingIntent.FLAG_MUTABLE);
-            } else {
-                pendingIntent = PendingIntent.getActivity(this,
-                        0, notificationIntent, 0);
+            Intent broadcastIntent = new Intent(this, ScreenLockReceiver.class);
+            broadcastIntent.putExtra("width", width);
+            broadcastIntent.putExtra("height", height);
+            PendingIntent pendingIntent1;
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S){
+
+                pendingIntent1 = PendingIntent.getBroadcast(this,
+                        0, broadcastIntent, PendingIntent.FLAG_MUTABLE);
+            }
+            else{
+
+                pendingIntent1 = PendingIntent.getBroadcast(this,
+                        0, broadcastIntent, 0);
             }
             Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                     .setContentTitle("Service is Running")
                     .setContentText("Wallpaper will change automatically in every " + time)
                     .setSmallIcon(R.drawable.ic_wallpaper_black_24dp)
-                    .setContentIntent(pendingIntent)
-                    .setColor(getResources().getColor(R.color.colorPrimary))
+                    .setContentIntent(pendingIntent1)
+                    .setColor(getColor(R.color.colorPrimary))
                     .build();
             /*
              * A started service can use the startForeground API to put the service in a foreground state,

@@ -7,7 +7,9 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
+import androidx.work.Constraints;
 import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.NetworkType;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
@@ -22,6 +24,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Environment;
+import android.service.controls.DeviceTypes;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -79,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
        // setSupportActionBar(binding.appBar);
         //getSupportActionBar(binding.appBar)
 
-        Toast.makeText(this, "Network Available " + isNetworkAvailable(), Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, "Network Available " + isNetworkAvailable(), Toast.LENGTH_SHORT).show();
         if(!isNetworkAvailable()){
             //Log.d(TAG, "onCreate: " + "Hey Why didn't you awake");
             Intent intent = new Intent(MainActivity.this, Collection.class);
@@ -96,9 +99,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         createDirectory();
-       // util.checkPermission(this, Manifest.permission.SET_WALLPAPER, WALLPAPER_PERMISSION_CODE);
-        //webScrapping web = new webScrapping(this);
-
 
         if(savedInstanceState == null) {
             titles = new ArrayList<>();
@@ -122,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
         WallpaperAdapter adapter = new WallpaperAdapter(imgUrls, titles, Res, ids, this);
         //binding.wallpaperHome.setHasFixedSize(true);
 
-        StaggeredGridLayoutManager manager = new StaggeredGridLayoutManager(2, LinearLayoutManager.VERTICAL);
+        StaggeredGridLayoutManager manager = new StaggeredGridLayoutManager(3, LinearLayoutManager.VERTICAL);
         binding.wallpaperHome.setLayoutManager(manager);
         binding.wallpaperHome.setAdapter(adapter);
 
@@ -132,31 +132,20 @@ public class MainActivity extends AppCompatActivity {
             dataThread.start();
         }
 
-        binding.extendedFloatingActionButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this, Collection.class);
-                startActivity(intent);
-            }
+        binding.extendedFloatingActionButton.setOnClickListener(view -> {
+            Intent intent = new Intent(MainActivity.this, Collection.class);
+            startActivity(intent);
         });
 
-        binding.searchButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                performSearch(binding.searchEdt.getText().toString());
-            }
-        });
+        binding.searchButton.setOnClickListener(view -> performSearch(binding.searchEdt.getText().toString()));
 
-        binding.searchEdt.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                    //closeKeyboard();
-                    performSearch(v.getText().toString());
-                    return true;
-                }
-                return false;
+        binding.searchEdt.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                //closeKeyboard();
+                performSearch(v.getText().toString());
+                return true;
             }
+            return false;
         });
 
         RecyclerThread thread = new RecyclerThread(adapter);
@@ -164,12 +153,19 @@ public class MainActivity extends AppCompatActivity {
 
         Window window = this.getWindow();
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        //window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
 
-        window.setNavigationBarColor(this.getResources().getColor(R.color.colorPrimary));
+        window.setNavigationBarColor(getColor(R.color.colorPrimary));
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
 
-        startServiceViaWorker();
+        new Thread(){
+            @Override
+            public void run() {
+                super.run();
+                startServiceViaWorker();
+            }
+        }.start();
+
     }
 
 //    public void onStartServiceClick(View v) {
@@ -257,7 +253,6 @@ public class MainActivity extends AppCompatActivity {
             //Log.d("MainActivty", "starting service from doWork");
             Intent intent = new Intent(this, MyService.class);
             intent.putExtra("time", time);
-            //intent.putExtra("c", this);
             ContextCompat.startForegroundService(this, intent);
             //this.context.startService(intent);
         }
@@ -268,7 +263,7 @@ public class MainActivity extends AppCompatActivity {
         WorkManager workManager = WorkManager.getInstance(this);
 
         // As per Documentation: The minimum repeat interval that can be defined is 15 minutes (
-        // same as the JobScheduler API), but in practice 15 doesn't work. Using 16 here
+        // same as the JobScheduler API), but in practice 15 doesn't work. Using 17 here
         PeriodicWorkRequest request =
                 new PeriodicWorkRequest.Builder(
                         MyWorker.class,
@@ -276,25 +271,28 @@ public class MainActivity extends AppCompatActivity {
                         TimeUnit.MINUTES)
                         //.addTag(WORKER_TAG)
                         .build();
-        // below method will schedule a new work, each time app is opened
-        //workManager.enqueue(request);
-
-        // to schedule a unique work, no matter how many times app is opened i.e. startServiceViaWorker gets called
-        // https://developer.android.com/topic/libraries/architecture/workmanager/how-to/unique-work
-        // do check for AutoStart permission
-        workManager.enqueueUniquePeriodicWork(UNIQUE_WORK_NAME, ExistingPeriodicWorkPolicy.KEEP, request);
+//        // below method will schedule a new work, each time app is opened
+//        //workManager.enqueue(request);
+//
+//        // to schedule a unique work, no matter how many times app is opened i.e. startServiceViaWorker gets called
+//        // https://developer.android.com/topic/libraries/architecture/workmanager/how-to/unique-work
+//        // do check for AutoStart permission
+//
+//        Constraints constraints = new Constraints.Builder()
+//                .setRequiresDeviceIdle(DeviceTy)
+//                .setRequiredNetworkType(NetworkType.CONNECTED)
+//                .build();
+        workManager.enqueueUniquePeriodicWork(UNIQUE_WORK_NAME,
+                ExistingPeriodicWorkPolicy.KEEP, request);
 
     }
 
     public void createDirectory(){
         Util.checkPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE, STORAGE_PERMISSION_CODE);
-        Log.d("Directory creation", "createDirectory: ");
+        //Log.d("Directory creation", "createDirectory: ");
         String WALLPAPER_DIRECTORY = "Shaal-Wallpaper";
         File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath() + "/" + WALLPAPER_DIRECTORY);
         //File file = new File(getExternalFilesDir(null) + "/" + WALLPAPER_DIRECTORY);
-
-        //File file2 = new File(getExternalFilesDir(null) + "/" + WALLPAPER_DIRECTORY);
-
 
         if(file.exists()){
             Log.d("Directory creation", "createDirectory: ");
@@ -314,12 +312,10 @@ public class MainActivity extends AppCompatActivity {
 //            //Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
 //            Log.d(TAG, "createDirectory: " + e.getMessage());
 //        }
-
-
         if(!results){
             Log.d("Directory creation", "Failed at: " + Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES));
         }
-        Log.d("Directory creation", ": " + results);
+        //Log.d("Directory creation", ": " + results);
     }
 
     @Override
@@ -333,7 +329,8 @@ public class MainActivity extends AppCompatActivity {
                         "Storage Permission Granted", Toast.LENGTH_SHORT).show();
             }
             else {
-                Toast.makeText(MainActivity.this, "Storage Permission Denied", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Storage Permission Denied",
+                        Toast.LENGTH_SHORT).show();
             }
         }
 
@@ -352,7 +349,6 @@ public class MainActivity extends AppCompatActivity {
 
         WallpaperAdapter adapter;
         int n = 1;
-        webScrapping web = new webScrapping(MainActivity.this);
 
         RecyclerThread(WallpaperAdapter adapter){
             this.adapter = adapter;
@@ -434,12 +430,7 @@ public class MainActivity extends AppCompatActivity {
             try {
                 web.getWallpaper(n);
             }catch (Exception e){
-                MainActivity.this.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                });
+                MainActivity.this.runOnUiThread(() -> Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show());
             }
 
 
@@ -453,20 +444,16 @@ public class MainActivity extends AppCompatActivity {
             Res.addAll(res);
             ids.addAll(id);
 
-            MainActivity.this.runOnUiThread(new Runnable() {
-
-                @Override
-                public void run() {
-                    binding.newProgressbar1.setVisibility(View.GONE);
-                    if(temp == 0){
-                        adapter.notifyDataSetChanged();
-                        binding.SHOWPROGRESS.setVisibility(View.GONE);
-                    }
-                    else {
-                        adapter.notifyItemRangeInserted(temp, imgUrls.size());
-                        binding.SHOWPROGRESS.setVisibility(View.GONE);
-                        binding.wallpaperHome.smoothScrollBy(0, 40);
-                    }
+            MainActivity.this.runOnUiThread(() -> {
+                binding.newProgressbar1.setVisibility(View.GONE);
+                if(temp == 0){
+                    adapter.notifyDataSetChanged();
+                    binding.SHOWPROGRESS.setVisibility(View.GONE);
+                }
+                else {
+                    adapter.notifyItemRangeInserted(temp, imgUrls.size());
+                    binding.SHOWPROGRESS.setVisibility(View.GONE);
+                    binding.wallpaperHome.smoothScrollBy(0, 40);
                 }
             });
         }

@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/idCVWallpaper"
     android:layout_width="match_parent"
-    android:layout_height="370dp"
+    android:layout_height="320dp"
     android:layout_margin="1dp"
     android:clickable="true"
     android:background="?attr/selectableItemBackgroundBorderless"
@@ -12,7 +12,9 @@
     <ImageView
         android:id="@+id/Wallpaperlist"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="320dp"
+        android:maxHeight="320dp"
+
         android:scaleType="centerCrop"
 
         android:src="@drawable/thumb_965469"

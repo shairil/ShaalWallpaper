@@ -10,6 +10,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -70,7 +71,6 @@ public class Wallpaper extends AppCompatActivity {
         //imgURL = getIntent().getStringExtra("imgURL", " ")
         if(i == 1) {
             imgURL = getIntent().getStringExtra("imgURL");
-
         }
         else if(i==2)
             path = getIntent().getStringExtra("path");
@@ -109,33 +109,38 @@ public class Wallpaper extends AppCompatActivity {
         }
 
 
-        binding.setWallpaper.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                BitmapDrawable drawable = (BitmapDrawable) binding.mainWallpaper.getDrawable();
-                Bitmap image = drawable.getBitmap();
-                WallpaperManager manager = WallpaperManager.getInstance(Wallpaper.this);
-                WallpaperManager manager1 = WallpaperManager.getInstance(Wallpaper.this);
-
-                try {
-                    manager.setBitmap(image, null, true, WallpaperManager.FLAG_LOCK);
-                    Toast.makeText(Wallpaper.this, "Wallpaper set Successfully.", Toast.LENGTH_SHORT).show();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                new Thread(() -> {
-                    try {
-                        manager1.setBitmap(image);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }).start();
+        binding.setWallpaper.setOnClickListener(view -> {
+            BitmapDrawable drawable = (BitmapDrawable) binding.mainWallpaper.getDrawable();
+            Bitmap image = drawable.getBitmap();
+            DisplayMetrics displayMetrics;
+            displayMetrics = getResources().getDisplayMetrics();
+            int width = displayMetrics.widthPixels;
+            int height = displayMetrics.heightPixels;
+            Log.d("Collection", "onClick: " + width + " " + height);
+            WallpaperManager manager = WallpaperManager.getInstance(Wallpaper.this);
+            WallpaperManager manager1 = WallpaperManager.getInstance(Wallpaper.this);
 
 
-
-
+            try {
+                Log.d("Collection", "onClick: Image Width" + image.getWidth() + " " + image.getHeight());
+                manager.setBitmap(image, null, true, WallpaperManager.FLAG_LOCK);
+                manager1.setBitmap(image);
+                Toast.makeText(Wallpaper.this, "Wallpaper set Successfully.", Toast.LENGTH_SHORT).show();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+
+//                new Thread(() -> {
+//                    try {
+//                        manager1.setBitmap(image);
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+//                }).start();
+
+
+
+
         });
 
 //
@@ -143,66 +148,60 @@ public class Wallpaper extends AppCompatActivity {
 
 
 
-        binding.addToCollection.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                //getExternalMediaDirs()
-                File wallpaperDirectory = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath() + "/" + WALLPAPER_DIRECTORY);
-                //File wallpaperDirectory = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES) + "/" + WALLPAPER_DIRECTORY);
-                //File wallpaperDirectory = new File(getExternalFilesDir(null) + "/" + WALLPAPER_DIRECTORY);
-                if(!wallpaperDirectory.exists()){
-                    boolean results = wallpaperDirectory.mkdir();
-                    Log.d("Wallpaper", "onClick: " + results);
-                }
+        binding.addToCollection.setOnClickListener(view -> {
+            //getExternalMediaDirs()
+            File wallpaperDirectory = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath() + "/" + WALLPAPER_DIRECTORY);
+            //File wallpaperDirectory = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES) + "/" + WALLPAPER_DIRECTORY);
+            //File wallpaperDirectory = new File(getExternalFilesDir(null) + "/" + WALLPAPER_DIRECTORY);
+            if(!wallpaperDirectory.exists()){
+                boolean results = wallpaperDirectory.mkdir();
+                Log.d("Wallpaper", "onClick: " + results);
+            }
 
-                Log.d("Wallpaper", "onClick: 1");
+            Log.d("Wallpaper", "onClick: 1");
 
-                if(wallpaperDirectory.exists()) {
-                    addCollection(binding.mainWallpaper, wallpaperDirectory, title, id);
-                }
+            if(wallpaperDirectory.exists()) {
+                addCollection(binding.mainWallpaper, wallpaperDirectory, title, id);
             }
         });
 
-        binding.mainWallpaper.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                toggle = !toggle;
-                if(toggle){
-                    hide();
-                }
-                else{
-                    show();
-                }
+        binding.mainWallpaper.setOnClickListener(view -> {
+            toggle = !toggle;
+            if(toggle){
+                hide();
+            }
+            else{
+                show();
             }
         });
 
-        binding.backBtn2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onBackPressed();
-            }
-        });
+        binding.backBtn2.setOnClickListener(view -> onBackPressed());
 
 
         Window window = this.getWindow();
 //        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
 //        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
 
-        if (Build.VERSION.SDK_INT >= 21) {
-            setWindowFlag(this, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, false);
-            setWindowFlag(this, WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION, false);
-            getWindow().setStatusBarColor(Color.TRANSPARENT);
-            getWindow().setNavigationBarColor(Color.TRANSPARENT);
-        }
+        setWindowFlag(this, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, false);
+        setWindowFlag(this, WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION, false);
+        getWindow().setStatusBarColor(Color.TRANSPARENT);
+        getWindow().setNavigationBarColor(Color.TRANSPARENT);
 
-        if (Build.VERSION.SDK_INT >= 19 && Build.VERSION.SDK_INT < 21) {
-            setWindowFlag(this, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, true);
-            setWindowFlag(this, WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION, true);
-        }
-        if (Build.VERSION.SDK_INT >= 19) {
-            //getWindow().getDecorView().setSystemUiVisibility(View.);
-            getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
-        }
+
+        // if above lines doesn't work well uncomment below ones.
+//        if (Build.VERSION.SDK_INT >= 21) {
+//            setWindowFlag(this, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, false);
+//            setWindowFlag(this, WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION, false);
+//            getWindow().setStatusBarColor(Color.TRANSPARENT);
+//            getWindow().setNavigationBarColor(Color.TRANSPARENT);
+//        }
+//
+//        else if (Build.VERSION.SDK_INT >= 19) {
+//            setWindowFlag(this, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, true);
+//            setWindowFlag(this, WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION, true);
+//            getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+//                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+//        }
 
 
 
@@ -266,12 +265,9 @@ public class Wallpaper extends AppCompatActivity {
         binding.toolbar2.startAnimation(animation);
         binding.linearLayout1.startAnimation(animation);
 
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                binding.toolbar2.setVisibility(View.GONE);
-                binding.linearLayout1.setVisibility(View.GONE);
-            }
+        new Handler().postDelayed(() -> {
+            binding.toolbar2.setVisibility(View.GONE);
+            binding.linearLayout1.setVisibility(View.GONE);
         }, 500);
 
 

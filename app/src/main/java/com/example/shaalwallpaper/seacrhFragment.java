@@ -28,8 +28,9 @@ public class seacrhFragment extends BottomSheetDialogFragment {
 //    private RecyclerView recyclerView;
 //    private ProgressBar center, down;
 //    private TextView textView;
-    private String url, URL;
-    private ProgressBar progressBar;
+    private final String url;
+    private String URL;
+    private final ProgressBar progressBar;
     private boolean isScrolling = false;
     private final String name = "Find Data";
     private int count = -1, n=1;
@@ -135,64 +136,8 @@ public class seacrhFragment extends BottomSheetDialogFragment {
             }
         });
 
-
-
-
-//        AddDataThread1 thread = new AddDataThread1(adapter);
-//        thread.setName(name+ n);
-//        thread.start();
-
-//        RecyclerThread1 thread2 = new RecyclerThread1(adapter);
-//        thread2.start();
-
-
-
         return binding.getRoot();
     }
-
-//    class RecyclerThread1 extends Thread{
-//
-//        WallapaperAdapter adapter;
-//        int n = 1;
-//
-//        RecyclerThread1(WallapaperAdapter adapter){
-//            this.adapter = adapter;
-//        }
-//
-//        @Override
-//        public void run() {
-//            binding.searchWallpaper.addOnScrollListener(new RecyclerView.OnScrollListener() {
-//                @Override
-//                public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
-//                    super.onScrollStateChanged(recyclerView, newState);
-//                    if(newState == AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL){
-//                        isScrolling = true;
-//                        binding.loadMoreProgressBar.setVisibility(View.GONE);
-//                    }
-//                }
-//
-//                @Override
-//                public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
-//                    super.onScrolled(recyclerView, dx, dy);
-//
-//                    if(isScrolling && !recyclerView.canScrollVertically(1) && !check(n-1)){
-//                        //sha++;
-//                        isScrolling = false;
-//                        binding.loadMoreProgressBar.setVisibility(View.VISIBLE);
-//                        AddDataThread1 thread = new AddDataThread1(adapter);
-//                        thread.setName(name+ n);
-//                        try {
-//                            thread.start();
-//                        }catch (Exception e){
-//                            Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_LONG).show();
-//                        }
-//                        //Toast.makeText(MainActivity.this, "How many will you be called " + sha, Toast.LENGTH_SHORT).show();
-//
-//                    }
-//                }
-//            });
-//        }
-//    }
 
     class AddDataThread1 extends Thread{
         webScrapping web = new webScrapping(getContext());
@@ -238,24 +183,20 @@ public class seacrhFragment extends BottomSheetDialogFragment {
             ids.addAll(id);
             Log.d("insideFragment", "run: " + imgUrls);
 
-            requireActivity().runOnUiThread(new Runnable() {
-
-                @Override
-                public void run() {
-                    if(temp == 0){
-                        adapter.notifyDataSetChanged();
-                        binding.newProgress.setVisibility(View.GONE);
-                        binding.loadMoreProgressBar.setVisibility(View.GONE);
-                        if(count == -1){
-                            binding.result.setVisibility(View.VISIBLE);
-                        }
+            requireActivity().runOnUiThread(() -> {
+                if(temp == 0){
+                    adapter.notifyDataSetChanged();
+                    binding.newProgress.setVisibility(View.GONE);
+                    binding.loadMoreProgressBar.setVisibility(View.GONE);
+                    if(count == -1){
+                        binding.result.setVisibility(View.VISIBLE);
                     }
-                    else {
-                        adapter.notifyItemRangeInserted(temp, imgUrls.size());
-                        binding.newProgress.setVisibility(View.GONE);
-                        binding.loadMoreProgressBar.setVisibility(View.GONE);
-                        binding.searchWallpaper.smoothScrollBy(0, 40);
-                    }
+                }
+                else {
+                    adapter.notifyItemRangeInserted(temp, imgUrls.size());
+                    binding.newProgress.setVisibility(View.GONE);
+                    binding.loadMoreProgressBar.setVisibility(View.GONE);
+                    binding.searchWallpaper.smoothScrollBy(0, 40);
                 }
             });
 

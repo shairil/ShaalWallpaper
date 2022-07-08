@@ -39,6 +39,7 @@ public class WallpaperAdapter extends RecyclerView.Adapter<WallpaperAdapter.Wall
         if(imgUrls != null) {
             Glide.with(context)
                     .load(imgUrls.get(position))
+                    .placeholder(R.drawable.ic_wallpaper_black_24dp)
                     .dontAnimate()
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .into(holder.img);
@@ -52,21 +53,18 @@ public class WallpaperAdapter extends RecyclerView.Adapter<WallpaperAdapter.Wall
         }
 
 
-        holder.cardView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(imgUrls != null)
-                    callWallpaperScreenFromMain(imgUrls.get(position), titles.get(position), ids.get(position));
-                else{
-                    int i = files.get(position).getName().indexOf('(');
-                    int j = files.get(position).getName().indexOf(')');
-                    int id = Integer.parseInt(files.get(position).getName().substring(i+1, j));
-                    String title = files.get(position).getName().substring(0, i);
-                    String path = files.get(position).getAbsolutePath();
-                    callWallpaperScreenFromCollection(path, title, id);
-                }
-
+        holder.cardView.setOnClickListener(view -> {
+            if(imgUrls != null)
+                callWallpaperScreenFromMain(imgUrls.get(position), titles.get(position), ids.get(position));
+            else{
+                int i = files.get(position).getName().indexOf('(');
+                int j = files.get(position).getName().indexOf(')');
+                int id = Integer.parseInt(files.get(position).getName().substring(i+1, j));
+                String title = files.get(position).getName().substring(0, i);
+                String path = files.get(position).getAbsolutePath();
+                callWallpaperScreenFromCollection(path, title, id);
             }
+
         });
     }
 
@@ -146,8 +144,8 @@ public class WallpaperAdapter extends RecyclerView.Adapter<WallpaperAdapter.Wall
 
         public WallpaperViewHolder(@NonNull View itemView) {
             super(itemView);
-            img = (ImageView) itemView.findViewById(R.id.Wallpaperlist);
-            cardView = (CardView) itemView.findViewById(R.id.idCVWallpaper);
+            img = itemView.findViewById(R.id.Wallpaperlist);
+            cardView = itemView.findViewById(R.id.idCVWallpaper);
         }
     }
 

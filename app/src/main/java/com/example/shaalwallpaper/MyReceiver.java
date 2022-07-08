@@ -15,9 +15,23 @@ public class MyReceiver extends BroadcastReceiver {
         String TAG = "MyReceiver";
         Log.d(TAG, "onReceive called");
 
-        WorkManager workManager = WorkManager.getInstance(context);
-        OneTimeWorkRequest startServiceRequest = new OneTimeWorkRequest.Builder(MyWorker.class)
-                .build();
-        workManager.enqueue(startServiceRequest);
+        if (!MyService.isServiceRunning) {
+            //Log.d(TAG, "starting service from doWork");
+            try {
+                Intent intent1 = new Intent(context, MyService.class);
+                //intent.putExtra("time", timer);
+                ContextCompat.startForegroundService(context, intent1);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+            //this.context.startService(intent);
+        }
+
+        if(!MyService.isServiceRunning) {
+            WorkManager workManager = WorkManager.getInstance(context);
+            OneTimeWorkRequest startServiceRequest = new OneTimeWorkRequest.Builder(MyWorker.class)
+                    .build();
+            workManager.enqueue(startServiceRequest);
+        }
     }
 }
