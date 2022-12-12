@@ -6,7 +6,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -37,6 +36,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Objects;
 
 public class Wallpaper extends AppCompatActivity {
     private final String WALLPAPER_DIRECTORY = "Shaal-Wallpaper";
@@ -64,7 +64,7 @@ public class Wallpaper extends AppCompatActivity {
         //String title = "";
 
         webScrapping web = new webScrapping(this);
-        getSupportActionBar().hide();
+        Objects.requireNonNull(getSupportActionBar()).hide();
         int i = getIntent().getIntExtra("type", 0);
         String title = getIntent().getStringExtra("title");
         binding.Name.setText(title);
@@ -178,7 +178,7 @@ public class Wallpaper extends AppCompatActivity {
         binding.backBtn2.setOnClickListener(view -> onBackPressed());
 
 
-        Window window = this.getWindow();
+//        Window window = this.getWindow();
 //        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
 //        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
 
@@ -242,7 +242,9 @@ public class Wallpaper extends AppCompatActivity {
             Log.d("Wallpaper123", "addCollection: " + e.getMessage());
         }
         try {
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
+            if (bitmap != null) {
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
+            }
         }catch (Exception e){
             e.printStackTrace();
         }

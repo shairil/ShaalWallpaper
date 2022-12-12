@@ -1,18 +1,5 @@
 package com.example.shaalwallpaper;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.recyclerview.widget.StaggeredGridLayoutManager;
-import androidx.work.Constraints;
-import androidx.work.ExistingPeriodicWorkPolicy;
-import androidx.work.NetworkType;
-import androidx.work.PeriodicWorkRequest;
-import androidx.work.WorkManager;
-
 import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -24,17 +11,25 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Environment;
-import android.service.controls.DeviceTypes;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
-import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.StaggeredGridLayoutManager;
+import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
 
 import com.example.shaalwallpaper.Adapter.WallpaperAdapter;
 import com.example.shaalwallpaper.databinding.ActivityMainBinding;
@@ -61,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int STORAGE_PERMISSION_CODE = 101;
     private static final int WALLPAPER_PERMISSION_CODE = 102;
     private final String TAG = "MAIN ACTIVITY";
-    private final Util util = new Util();
+//    private final Util util = new Util();
     private final String name = "ADD Data";
     private String time = "15 min";
     private boolean toggle = false;
@@ -447,7 +442,8 @@ public class MainActivity extends AppCompatActivity {
             MainActivity.this.runOnUiThread(() -> {
                 binding.newProgressbar1.setVisibility(View.GONE);
                 if(temp == 0){
-                    adapter.notifyDataSetChanged();
+//                    adapter.notifyDataSetChanged();
+                    adapter.notifyItemRangeInserted(0,imgUrls.size());
                     binding.SHOWPROGRESS.setVisibility(View.GONE);
                 }
                 else {
@@ -484,23 +480,23 @@ public class MainActivity extends AppCompatActivity {
         //show();
     }
 
-    private void closeKeyboard() {
-        // this will give us the view
-        // which is currently focus
-        // in this layout
-        View view = this.getCurrentFocus();
-
-        // if nothing is currently
-        // focus then this will protect
-        // the app from crash
-        if (view != null) {
-            // now assign the system
-            // service to InputMethodManager
-            InputMethodManager manager =
-                    (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-            manager.hideSoftInputFromWindow(view.getWindowToken(), 0);
-        }
-    }
+//    private void closeKeyboard() {
+//        // this will give us the view
+//        // which is currently focus
+//        // in this layout
+//        View view = this.getCurrentFocus();
+//
+//        // if nothing is currently
+//        // focus then this will protect
+//        // the app from crash
+//        if (view != null) {
+//            // now assign the system
+//            // service to InputMethodManager
+//            InputMethodManager manager =
+//                    (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+//            manager.hideSoftInputFromWindow(view.getWindowToken(), 0);
+//        }
+//    }
 
     private void hide(){
         toggle = !toggle;

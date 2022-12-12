@@ -1,15 +1,14 @@
 package com.example.shaalwallpaper;
 
+import static java.lang.Math.abs;
+
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
 
 import com.example.shaalwallpaper.helper.Util;
 
 import java.util.Random;
-
-import static java.lang.Math.abs;
 
 public class ScreenLockReceiver extends BroadcastReceiver {
 

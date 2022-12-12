@@ -90,7 +90,8 @@ public class seacrhFragment extends BottomSheetDialogFragment {
             titles.addAll(tit);
             Res.addAll(res);
             ids.addAll(id);
-            adapter.notifyDataSetChanged();
+            adapter.notifyItemRangeInserted(0, imgUrls.size());
+//            adapter.notifyDataSetChanged();
             progressBar.setVisibility(View.GONE);
         }
 
@@ -185,7 +186,8 @@ public class seacrhFragment extends BottomSheetDialogFragment {
 
             requireActivity().runOnUiThread(() -> {
                 if(temp == 0){
-                    adapter.notifyDataSetChanged();
+//                    adapter.notifyDataSetChanged();
+                    adapter.notifyItemRangeInserted(0, imgUrls.size());
                     binding.newProgress.setVisibility(View.GONE);
                     binding.loadMoreProgressBar.setVisibility(View.GONE);
                     if(count == -1){

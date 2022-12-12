@@ -32,6 +32,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 public class Collection extends AppCompatActivity {
 
@@ -53,7 +54,7 @@ public class Collection extends AppCompatActivity {
         //titles = new ArrayList<>();
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         //getActionBar().setCustomView(binding.toolbar);
-        getSupportActionBar().hide();
+        Objects.requireNonNull(getSupportActionBar()).hide();
 //        setSupportActionBar(binding.toolbar);
 //        imgURLs = new ArrayList<>();
 //        res = new ArrayList<>();

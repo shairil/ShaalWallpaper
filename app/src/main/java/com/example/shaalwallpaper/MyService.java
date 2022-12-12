@@ -8,7 +8,6 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.Configuration;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Handler;
@@ -16,11 +15,13 @@ import android.os.IBinder;
 import android.os.PowerManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
+
 import androidx.core.app.NotificationCompat;
+
 import com.example.shaalwallpaper.helper.TimerConfig;
 import com.example.shaalwallpaper.helper.Util;
+
 import java.util.Timer;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 public class MyService extends Service implements SharedPreferences.OnSharedPreferenceChangeListener{
     private static int i=0;
@@ -72,7 +73,7 @@ public class MyService extends Service implements SharedPreferences.OnSharedPref
         //gestureDetector = new GestureDetector(this, new MyGestureListener());
 
         pm = (PowerManager) this.getSystemService(Context.POWER_SERVICE);
-        Configuration orientation = this.getResources().getConfiguration();
+//        Configuration orientation = this.getResources().getConfiguration();
 
         try{
             new DisplayMetrics();
@@ -288,16 +289,14 @@ public class MyService extends Service implements SharedPreferences.OnSharedPref
     }
 
     private void createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            String appName = getString(R.string.app_name);
-            NotificationChannel serviceChannel = new NotificationChannel(
-                    CHANNEL_ID,
-                    appName,
-                    NotificationManager.IMPORTANCE_DEFAULT
-            );
-            NotificationManager manager = getSystemService(NotificationManager.class);
-            manager.createNotificationChannel(serviceChannel);
-        }
+        String appName = getString(R.string.app_name);
+        NotificationChannel serviceChannel = new NotificationChannel(
+                CHANNEL_ID,
+                appName,
+                NotificationManager.IMPORTANCE_DEFAULT
+        );
+        NotificationManager manager = getSystemService(NotificationManager.class);
+        manager.createNotificationChannel(serviceChannel);
     }
 
     @Override

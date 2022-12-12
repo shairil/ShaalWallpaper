@@ -3,19 +3,15 @@ package com.example.shaalwallpaper;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
-import androidx.work.ListenableWorker;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
-import com.google.common.util.concurrent.ListenableFuture;
-
 public class MyWorker extends Worker {
     private final Context context;
-    private int work;
+//    private int work;
     private final String TAG = "MyWorker";
     private String timer = "15 min";
 
