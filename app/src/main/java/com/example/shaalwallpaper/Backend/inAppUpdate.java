@@ -48,7 +48,7 @@ public class inAppUpdate extends AsyncTask<String,Integer,String> {
             c.setChunkedStreamingMode(1024);
 
             c.connect();
-
+            
             // expect HTTP 200 OK, so we don't mistakenly save error report
             // instead of the file
             if (c.getResponseCode() != HttpURLConnection.HTTP_OK) {

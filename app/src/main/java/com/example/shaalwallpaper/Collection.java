@@ -65,7 +65,8 @@ public class Collection extends AppCompatActivity {
         try {
             SharedPreferences sharedPreferences1 = getSharedPreferences("Timer", MODE_PRIVATE);
             initial = sharedPreferences1.getString("time", "15 min");
-            Toast.makeText(this, "Your Wallpaper will change automatically after every " + initial, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Your Wallpaper will change automatically after every "
+                    + initial, Toast.LENGTH_SHORT).show();
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -124,7 +125,8 @@ public class Collection extends AppCompatActivity {
 //
 //                        }
                     else {
-                        Collection.this.runOnUiThread(() -> Toast.makeText(Collection.this, "Directory is empty", Toast.LENGTH_SHORT).show());
+                        Collection.this.runOnUiThread(() -> Toast.makeText(Collection.this,
+                                "Directory is empty", Toast.LENGTH_SHORT).show());
 
                     }
                 } catch (Exception e) {
@@ -176,7 +178,6 @@ public class Collection extends AppCompatActivity {
 
         binding.backBtn.setOnClickListener(view -> onBackPressed());
 
-
        // Window window = this.getWindow();
 //        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
 //        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
@@ -185,8 +186,6 @@ public class Collection extends AppCompatActivity {
         setWindowFlag(this, WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION, false);
         getWindow().setStatusBarColor(Color.TRANSPARENT);
         getWindow().setNavigationBarColor(Color.TRANSPARENT);
-
-
     }
 
     public static void setWindowFlag(Activity activity, final int bits, boolean on) {

@@ -190,8 +190,6 @@ public class MyService extends Service implements SharedPreferences.OnSharedPref
         //Log.d(TAG, "onCreate: " + time);
         //Log.d(TAG, "Outside run: " + t);
 
-
-
         handler = new Handler();
         handler.post(new Runnable() {
             @Override

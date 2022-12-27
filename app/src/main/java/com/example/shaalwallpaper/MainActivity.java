@@ -3,7 +3,9 @@ package com.example.shaalwallpaper;
 import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -32,6 +34,7 @@ import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
 import com.example.shaalwallpaper.Adapter.WallpaperAdapter;
+import com.example.shaalwallpaper.Backend.inAppUpdate;
 import com.example.shaalwallpaper.databinding.ActivityMainBinding;
 import com.example.shaalwallpaper.helper.Util;
 import com.example.shaalwallpaper.helper.webScrapping;
@@ -50,11 +53,11 @@ public class MainActivity extends AppCompatActivity {
     private static int y;
     List<String> titles = null, Res = null, imgUrls=null;
     List<Integer> ids=null;
-    //ProgressDialog mProgressDialog;
+    ProgressDialog mProgressDialog;
     boolean isScrolling = false;
     //int currItems, totalItems, scrolledItems;
-    private static final int STORAGE_PERMISSION_CODE = 101;
-    private static final int WALLPAPER_PERMISSION_CODE = 102;
+
+
     private final String TAG = "MAIN ACTIVITY";
 //    private final Util util = new Util();
     private final String name = "ADD Data";
@@ -64,12 +67,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
-
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         super.onCreate(savedInstanceState);
         setContentView(binding.getRoot());
-
-        
 
 //        Intent intent = new Intent(MainActivity.this, Collection.class);
 //        startActivity(intent);
@@ -78,11 +78,7 @@ public class MainActivity extends AppCompatActivity {
         //getSupportActionBar(binding.appBar)
 
         //Toast.makeText(this, "Network Available " + isNetworkAvailable(), Toast.LENGTH_SHORT).show();
-        if(!isNetworkAvailable()){
-            //Log.d(TAG, "onCreate: " + "Hey Why didn't you awake");
-            Intent intent = new Intent(MainActivity.this, Collection.class);
-            startActivity(intent);
-        }
+
 
         binding.newProgressbar1.setVisibility(View.VISIBLE);
 
@@ -93,7 +89,7 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        createDirectory();
+
 
         if(savedInstanceState == null) {
             titles = new ArrayList<>();
@@ -109,6 +105,24 @@ public class MainActivity extends AppCompatActivity {
             binding.newProgressbar1.setVisibility(View.GONE);
             n = imgUrls.size()/24;
         }
+
+        mProgressDialog = new ProgressDialog(MainActivity.this);
+        mProgressDialog.setMessage("A message");
+        mProgressDialog.setIndeterminate(true);
+        mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        mProgressDialog.setCancelable(true);
+
+// execute this when the downloader must be fired
+//        final inAppUpdate downloadTask = new inAppUpdate(MainActivity.this, mProgressDialog);
+//        downloadTask.execute("https://github.com/shairil/shaalWallpaper/releases/download/v1.0.0/app-debug.apk");
+//
+//        mProgressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+//
+//            @Override
+//            public void onCancel(DialogInterface dialog) {
+//                downloadTask.cancel(true); //cancel the task
+//            }
+//        });
 
 //        SharedPreferences sharedPreferences = getSharedPreferences("Timer",MODE_PRIVATE);
 //        SharedPreferences.Editor myEdit = sharedPreferences.edit();
@@ -153,13 +167,13 @@ public class MainActivity extends AppCompatActivity {
         window.setNavigationBarColor(getColor(R.color.colorPrimary));
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
 
-        new Thread(){
-            @Override
-            public void run() {
-                super.run();
-                startServiceViaWorker();
-            }
-        }.start();
+//        new Thread(){
+//            @Override
+//            public void run() {
+//                super.run();
+//                startServiceViaWorker();
+//            }
+//        }.start();
 
     }
 
@@ -171,37 +185,11 @@ public class MainActivity extends AppCompatActivity {
 //        stopService();
 //    }
 
-
-
     @Override
     protected void onDestroy() {
         //Log.d(TAG, "onDestroy called");
        // stopService();
         super.onDestroy();
-    }
-
-    @Override
-    protected void onPause() {
-        //Log.d(TAG, "onPause called");
-        super.onPause();
-    }
-
-    @Override
-    protected void onStop() {
-        //Log.d(TAG, "onStop called");
-        super.onStop();
-    }
-
-    @Override
-    protected void onStart() {
-        //Log.d(TAG, "onStart called");
-        super.onStart();
-    }
-
-    @Override
-    protected void onPostResume() {
-        //Log.d(TAG, "onResume called");
-        super.onPostResume();
     }
 
     @Nullable
@@ -226,14 +214,14 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    //    public void startService() {
-//        Log.d("TAG", "startService called");
-//        if (!MyService.isServiceRunning) {
-//            Intent serviceIntent = new Intent(this, MyService.class);
-//            ContextCompat.startForegroundService(this, serviceIntent);
-//            //startService(serviceIntent);
-//        }
-//    }
+    public void startService() {
+        Log.d("TAG", "startService called");
+        if (!MyService.isServiceRunning) {
+            Intent serviceIntent = new Intent(this, MyService.class);
+            ContextCompat.startForegroundService(this, serviceIntent);
+            startService(serviceIntent);
+        }
+    }
 
     public void stopService() {
         Log.d("TAG", "stopService called");
@@ -280,64 +268,6 @@ public class MainActivity extends AppCompatActivity {
         workManager.enqueueUniquePeriodicWork(UNIQUE_WORK_NAME,
                 ExistingPeriodicWorkPolicy.KEEP, request);
 
-    }
-
-    public void createDirectory(){
-        Util.checkPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE, STORAGE_PERMISSION_CODE);
-        //Log.d("Directory creation", "createDirectory: ");
-        String WALLPAPER_DIRECTORY = "Shaal-Wallpaper";
-        File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath() + "/" + WALLPAPER_DIRECTORY);
-        //File file = new File(getExternalFilesDir(null) + "/" + WALLPAPER_DIRECTORY);
-
-        if(file.exists()){
-            Log.d("Directory creation", "createDirectory: ");
-            return;
-        }
-
-        boolean results = file.mkdir();
-
-//        try{
-//            Log.d(TAG, "createDirectory: copying");
-//            Toast.makeText(this, "File will Copied Successfully", Toast.LENGTH_SHORT).show();
-//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-//                FileUtils.copy(new FileInputStream(file2), new FileOutputStream(file));
-//                Toast.makeText(this, "File Copied Successfully", Toast.LENGTH_SHORT).show();
-//            }
-//        }catch (Exception e){
-//            //Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
-//            Log.d(TAG, "createDirectory: " + e.getMessage());
-//        }
-        if(!results){
-            Log.d("Directory creation", "Failed at: " + Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES));
-        }
-        //Log.d("Directory creation", ": " + results);
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-                                           @NonNull int[] grantResults)
-    {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == STORAGE_PERMISSION_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(MainActivity.this,
-                        "Storage Permission Granted", Toast.LENGTH_SHORT).show();
-            }
-            else {
-                Toast.makeText(MainActivity.this, "Storage Permission Denied",
-                        Toast.LENGTH_SHORT).show();
-            }
-        }
-
-        else if(requestCode == WALLPAPER_PERMISSION_CODE){
-            if(grantResults.length>0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
-                Toast.makeText(MainActivity.this,
-                        "Set Wallpaper Permission Granted", Toast.LENGTH_SHORT).show();
-            }
-            else{
-                Toast.makeText(MainActivity.this, "Set Wallpaper Permission Denied", Toast.LENGTH_SHORT).show();
-            }
-        }
     }
 
     class RecyclerThread extends Thread{
@@ -538,6 +468,7 @@ public class MainActivity extends AppCompatActivity {
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
+
 }
 
 

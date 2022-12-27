@@ -8,39 +8,47 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-    <uses-permission android:name="android.permission.SET_WALLPAPER_HINTS"/>
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
-    <uses-permission android:name="android.permission.GET_TASKS"/>
+    <uses-permission android:name="android.permission.SET_WALLPAPER_HINTS" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.GET_TASKS" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
+        android:allowBackup="true"
+        android:fullBackupContent="@xml/backup_descriptor"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
-        android:windowSoftInputMode="stateHidden|adjustResize"
-        android:supportsRtl="true"
-
         android:requestLegacyExternalStorage="true"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
         android:theme="@style/Theme.ShaalWallpaper"
-        android:fullBackupContent="@xml/backup_descriptor"
-        android:allowBackup="true">
-        <activity android:name=".Collection"
-            android:hardwareAccelerated="true"
-            >
+        android:windowSoftInputMode="stateHidden|adjustResize"
+        android:dataExtractionRules="@xml/data_extraction_rules">
+        <activity
+            android:name=".SplashscreenActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:exported="true"
+            android:theme="@style/SplashTheme" >
 
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
 
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
-        <activity android:name=".Wallpaper"
-            android:immersive="true"
-            />
+        <activity
+            android:name=".Collection"
+            android:hardwareAccelerated="true" />
+        <activity
+            android:name=".Wallpaper"
+            android:immersive="true" />
 
         <receiver
             android:name=".MyReceiver"
             android:enabled="true"
             android:exported="false" />
-
         <receiver
             android:name=".ScreenLockReceiver"
             android:enabled="true"
@@ -51,13 +59,10 @@
             android:enabled="true"
             android:exported="false" />
 
-        <activity android:name=".MainActivity"
+        <activity
+            android:name=".MainActivity"
             android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
     </application>
 
